@@ -66,7 +66,7 @@ def pymol_plot(protein_path, output_path, algorithm_type, algorithm_name, k):
         os.makedirs("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))
         
     cmd.do("capture")
-    cmd.do("save {}{}{}Pnga{}{}_{}_{}_k{}.png".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, k))          
+    cmd.do("save {}{}{}Png{}{}_{}_{}_k{}.png".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, k))          
     cmd.do("save {}{}{}Sessions{}{}_{}_{}_k{}_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, k))
     cmd.do("delete {}".format(protein))
     
