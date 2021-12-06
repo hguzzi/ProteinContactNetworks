@@ -70,14 +70,15 @@ def pymol_plot(protein_path, output_path, algorithm_type, algorithm_name, k):
     cmd.do("save {}{}{}Sessions{}{}_{}_{}_k{}_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, k))
     cmd.do("delete {}".format(protein))
     
-def pymol_plot_embeddings(protein_path, output_path, algorithm_type, algorithm_name, k, d, beta=None):
-    
+def pymol_plot_embeddings(protein_path, output_path, algorithm_type, algorithm_name, k, d, beta):
+    print("BETABETABETABETABETABTETA")
+    print(beta)
     cmd.do("delete {}".format("all"))
     cmd.do("load {}".format(protein_path))
     
     protein = os.path.basename(protein_path)
     protein_name = os.path.splitext(protein)[0]
-       
+     
     if (beta is not None):
         filename = output_path+"{}{}{}{}{}_{}_{}_d{}_beta{}_k{}.txt".format(algorithm_name, add_slash_to_path, algorithm_type, add_slash_to_path, protein_name, algorithm_type, algorithm_name, d, beta, k)
     else:

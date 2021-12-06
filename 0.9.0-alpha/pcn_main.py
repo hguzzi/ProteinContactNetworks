@@ -188,12 +188,12 @@ while (end==False):
                             labels = method_to_call(A, k, d, beta)
                         else: #algorithm_choice in supported_algorithms_clustering
                             labels = method_to_call(A, k)
-                            d=None
-                            beta=None
+                       ## /d=None
+                       ##     beta=None
     
                         pcn_final.save_labels(output_path, labels, residue_names, p_name, algorithm_choice, d, beta)
                         if(type_choice == 'embeddings'):
-                            pcn_pymol_scripts.pymol_plot_embeddings(protein_path, output_path, "ClustersEmbeddings", algorithm_choice, k, d, beta=None)
+                            pcn_pymol_scripts.pymol_plot_embeddings(protein_path, output_path, "ClustersEmbeddings", algorithm_choice, k, d, beta)
                         
                         else:
                             pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Clusters", algorithm_choice, k)
