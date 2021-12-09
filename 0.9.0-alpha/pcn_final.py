@@ -19,15 +19,14 @@ import base64
 
 from gem.embedding.hope     import HOPE
 from gem.embedding.lap      import LaplacianEigenmaps
-from gem.embedding.node2vec import node2vec
+#from gem.embedding.node2vec import node2vec
 
 from cdlib import algorithms
-from networkx.algorithms.community.centrality import girvan_newman
-from networkx.algorithms.community.asyn_fluid import asyn_fluidc
+#from networkx.algorithms.community.centrality import girvan_newman as girvan_newman_
+from networkx.algorithms.community.asyn_fluid import asyn_fluidc as asyn_fluidc_
 from networkx.algorithms.community import greedy_modularity_communities
 
 #CREATE Protein Contact Network
-
 from sys import platform
 
 if platform == "linux" or platform == "linux2":
@@ -39,26 +38,55 @@ elif platform == "darwin":
 elif platform == "win32":
     # Windows...
     add_slash_to_path = '\\' 
+       
+def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None):
     
-def checkIfFilesExists(files, initial_choice, directory):
-    
-    not_existing_files = []
-    all_files_exists = True
+    not_existing_pdb_files = []
+    all_pdb_files_exists = True
     
     for file in files:
-        file_path = "{}{}".format(directory, file)
-        if((not os.path.isfile(file_path))):
-            all_files_exists = False
-            not_existing_files.append(file)
+        p_name = file[:4]
+        pdb_path = "{}{}.pdb".format(proteins_path, p_name)
+        if((not os.path.isfile(pdb_path))):
+            all_pdb_files_exists = False
+            not_existing_pdb_files.append(file)
+            
+    if(not all_pdb_files_exists):
+        for protein in not_existing_pdb_files:
+            p_name = protein[:4]
+            print(("protein {} pdb file missing, fetching on PDB database...").format(p_name))
+            urllib.request.urlretrieve("http://files.rcsb.org/download/{}.pdb".format(p_name), "{}{}.pdb".format(proteins_path, p_name))
+            print(("protein {} fetched successfully").format(p_name))
+        all_pdb_file_exists = True
     
-    if(not all_files_exists):
-        if(initial_choice == ""):
-            for protein in not_existing_files:
-                urllib.request.urlretrieve('http://files.rcsb.org/download/{}.pdb'.format(protein), '{}{}.pdb'.format(directory, protein))
-        else:
-            raise Exception("Files {} not exists in directory '{}'.".format(str(not_existing_files), directory))
-        
-    return all_files_exists    
+    if(initial_choice == "adj"):
+        not_existing_adj_files = []
+        all_adj_files_exists = True
+        for file in files:
+            file_path = "{}{}".format(adj_path, file)
+            if((not os.path.isfile(file_path))):
+                all_adj_files_exists = False
+                not_existing_adj_files.append(file)
+           
+        if(not all_adj_files_exists):
+            for protein in not_existing_adj_files:
+                p_name = protein[:4]   #adj = 6vxx_adj_mat.txt
+                print(("protein {} adj matrix missing... COMPUTING NOW").format(p_name))
+                      
+                protein_path = proteins_path+p_name+".pdb"
+                atoms = readPDBFile(protein_path)
+                residues = getResidueDistance(atoms)
+                dict_residue_name = associateResidueName(residues)
+                residue_names = np.array(list (dict_residue_name.items()))
+                                                
+                min_ = int(input("Entering non covalent bonds threshold distance for PCN costruction: ") or 4)    
+                max_ = int(input("Entering only significant bonds threshold distance for PCN costruction : ") or 8)
+                print("computing adjacency matrix... (CAN BE SLOW)")
+                output_path = os.path.abspath(os.path.join(adj_path, os.pardir))+add_slash_to_path
+                A = adjacent_matrix(output_path, residues, p_name, min_, max_)
+            
+            all_adj_file_exists = True
+                   
     
 def readPDBFile(pbdFilePath):
   atoms = []
@@ -179,11 +207,15 @@ def adjacent_matrix(output_path, residues, p, min_=4, max_=8):
 #SAVE LABELS
 def save_labels(output_path, labels, residue_names, p_name, method=None, d=None, beta=None):
 
-    supported_methods_clustering = ["Unnorm_SSC", "Norm_SSC", "Unnorm_HSC", "Norm_HSC", "SKL_Spectral", "HSC_ShiMalik", "SSC_ShiMalik"]
-    supported_methods_embeddings = ["Unnorm_SSC_HOPE", "Norm_SSC_HOPE", "Unnorm_HSC_HOPE", "Norm_HSC_HOPE", "HSC_ShiMalik_HOPE", "SSC_ShiMalik_HOPE",
-                                       "Unnorm_SSC_LaplacianEigenmaps", "Norm_SSC_LaplacianEigenmaps", "Unnorm_HSC_LaplacianEigenmaps", "Norm_HSC_LaplacianEigenmaps",
-                                       "HSC_ShiMalik_LaplacianEigenmaps", "SSC_ShiMalik_LaplacianEigenmaps"]
-    supported_methods_communities = ["Louvain", "Leiden", "Walktrap", "Asyn_fluidc", "Greedy_modularity", "Infomap", "Spinglass"]
+    supported_methods_clustering = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik"]
+    supported_methods_embeddings = ["unnorm_ssc_hope", "norm_ssc_hope", "unnorm_hsc_hope", "norm_hsc_hope", "hsc_shimalik_hope", "ssc_shimalik_hope",
+                                       "unnorm_ssc_laplacianeigenmaps", "norm_ssc_laplacianeigenmaps", "unnorm_hsc_laplacianeigenmaps", "norm_hsc_laplacianeigenmaps",
+                                       "hsc_shimalik_laplacianeigenmaps", "ssc_shimalik_laplacianeigenmaps"]
+    supported_methods_communities = ["louvain", "leiden", "walktrap", "asyn_fluidc", "greedy_modularity", "infomap", "spinglass"]
+    
+    if platform == "win32":
+        # Windows...
+        supported_methods_communities.remove("infomap")
 
     if ((method in supported_methods_clustering)|(method in supported_methods_communities)|(method in supported_methods_embeddings)):
         if method in supported_methods_clustering:
@@ -258,7 +290,7 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
     else:
         raise Exception ("method {} not supported".format(method))
 #COMMUNITY EXTRACTION
-def Louvain(G):
+def louvain(G):
   print('Start Computation of Louvain Algorithm')
   louvain = algorithms.louvain(G)
   coms = louvain.communities
@@ -278,7 +310,7 @@ def Louvain(G):
 
   return labels
 
-def Leiden(G):
+def leiden(G):
 
   leiden = algorithms.leiden(G)
   coms = leiden.communities
@@ -297,7 +329,7 @@ def Leiden(G):
   labels_u, counts = np.unique(labels, return_counts=True)
   return labels  
  
-def Walktrap(G):
+def walktrap(G):
 
   walktrap = algorithms.walktrap(G)
   coms = walktrap.communities
@@ -317,7 +349,7 @@ def Walktrap(G):
 
   return labels
   
-def Greedy_modularity(G):
+def greedy_modularity(G):
   coms = greedy_modularity_communities(G)
   dict_node_greedy_modularity_com = dict ()
   labels = np.zeros((G.number_of_nodes(), 1))
@@ -332,7 +364,7 @@ def Greedy_modularity(G):
   print("number of greedy modularity communities: {}".format(int (max(labels_u)+1)))
   return labels
 
-def Infomap(G):
+def infomap(G):
     
     coms = algorithms.infomap(G).communities
         
@@ -349,11 +381,11 @@ def Infomap(G):
     print("number of infomap communities: {}".format(int (max(labels_u)+1)))
     return labels
 
-def Asyn_fluidc(G):
+def asyn_fluidc(G):
   
   k = int( input("Insert k for Asyn_fluidc algorithm: "))
   print("number of Asyn_fluidc communities: ", k)
-  coms = asyn_fluidc(G, k)
+  coms = asyn_fluidc_(G, k)
 
   dict_node_Asyn_fluidc_com = dict ()
   labels = np.zeros((G.number_of_nodes(), 1))
@@ -367,7 +399,7 @@ def Asyn_fluidc(G):
   labels_u, counts = np.unique(labels, return_counts=True)
   return labels
   
-def Spinglass(G):
+def spinglass(G):
   coms = algorithms.spinglass(G).communities
   print(str (coms))
   dict_node_spinglass_com = dict ()
@@ -418,7 +450,7 @@ def computeSortEigens(mat):
   
   return sortedEigenvalues, sortedEigenvectors
   
-def computeBestK(eigenvalues, n_k = 2):
+def computeBestK(eigenvalues, n_k = 1):
 
   sortedEigenvalues = sorted(eigenvalues)[::-1]
   max_eigengap = 0              
@@ -444,23 +476,23 @@ def computeBestK(eigenvalues, n_k = 2):
   idx = all_eigengaps.argsort()[::-1]
   real_best_ks = all_k[idx]
   
-  if ((best_k > 27)|(best_k==1)):
+  if ((best_k > 60)|(best_k==1)):
     best_k = 0
     for k in real_best_ks:
-      if ((k<27)&(k>1)):
+      if ((k<60)&(k>1)):
         best_k = k
         break
 
-  best_ks = real_best_ks[(real_best_ks<27) & (real_best_ks>1)][:n_k]
+  best_ks = real_best_ks[(real_best_ks<60) & (real_best_ks>1)][:n_k]
   print("Best k: ", best_k)
-  print("Real Best {} ks: ".format(n_k), real_best_ks)
+  #print("Real Best {} ks: ".format(n_k), real_best_ks)
   print("Choosen Best {} ks: ".format(n_k), best_ks)
   
   return best_ks
 
-def hardSpectralClustering(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=False, embedding=None, d=2, beta=0.01):
+def hardSpectralClustering(A, n_clusters = None, norm=False, embedding=None, d=2, beta=0.01):
     
-    supported_embeddings = ["node2vec", "HOPE", "LaplacianEigenmaps"]
+    supported_embeddings = ["HOPE", "LaplacianEigenmaps"]
     if embedding is None:
         if norm:
             L = compute_normalized_laplacian(A)
@@ -468,12 +500,14 @@ def hardSpectralClustering(A, n_clusters = None, plot_eig=False, plot_fiedler=Fa
             L = compute_laplacian_matrix(A)
 
         sortedEigenvalues, sortedEigenvectors = computeSortEigens(L)             #sorted eigenvalues/eigenvectors
-
+            
         if n_clusters is None:
-            n_clusters = computeBestK(sortedEigenvalues, n_k = 5)
+            n_clusters = computeBestK(sortedEigenvalues, n_k = 1)
         
-        j, fiedler_eigenvalue, fiedler_eigenvector = next(([j, eigenvalue, sortedEigenvectors[j]] for j, eigenvalue in enumerate(sortedEigenvalues) if (round(eigenvalue, 6) != 0)), None)
         train = sortedEigenvectors[:, :n_clusters]
+        if norm:
+            train = sortedEigenvectors/np.sqrt(np.sum(sortedEigenvectors**2))
+            train = train[:, :n_clusters]
         
     else:
         if (embedding in supported_embeddings):
@@ -493,22 +527,26 @@ def hardSpectralClustering(A, n_clusters = None, plot_eig=False, plot_fiedler=Fa
  
     return labels
 
-def softSpectralClustering(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=False, embedding = None,  d=2, beta=0.01):
+def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  d=2, beta=0.01):
      
-    supported_embeddings = ["node2vec", "HOPE", "LaplacianEigenmaps"]
+    supported_embeddings = ["HOPE", "LaplacianEigenmaps"]
     if embedding is None:   
         
         if norm:
             L = compute_normalized_laplacian(A)
         else:
             L = compute_laplacian_matrix(A)
-
-        sortedEigenvalues, sortedEigenvectors = computeSortEigens(L)            #sorted eigenvalues/eigenvectors
-        j, fiedler_eigenvalue, fiedler_eigenvector = next(([j, eigenvalue, sortedEigenvectors[j]] for j, eigenvalue in enumerate(sortedEigenvalues) if (round(eigenvalue, 6) != 0)), None)
-        train = sortedEigenvectors[:, :n_clusters]
         
         if n_clusters is None:
-            n_clusters = computeBestK(sortedEigenvalues,  n_k = 5)
+            n_clusters = computeBestK(sortedEigenvalues,  n_k = 1)
+            
+        sortedEigenvalues, sortedEigenvectors = computeSortEigens(L)            #sorted eigenvalues/eigenvectors
+        train = sortedEigenvectors[:, :n_clusters]
+        
+        train = sortedEigenvectors[:, :n_clusters]
+        if norm:
+            train = sortedEigenvectors/np.sqrt(np.sum(sortedEigenvectors**2))
+            train = train[:, :n_clusters]
             
     else:
         if (embedding in supported_embeddings):
@@ -527,14 +565,12 @@ def softSpectralClustering(A, n_clusters = None, plot_eig=False, plot_fiedler=Fa
     fcm.fit(train)
     labels = fcm.predict(train)
     centers = fcm.centers
-    print("labels: ", labels)
-    print("centers: ", centers)
 
     return labels
   
-def SSC_ShiMalik(A, n_clusters = None, plot_eig=False, plot_fiedler=False, embedding=None, d=2, beta=0.01):
+def ssc_shimalik(A, n_clusters = None, embedding=None, d=2, beta=0.01):
     
-    supported_embeddings = ["node2vec", "HOPE", "LaplacianEigenmaps"]
+    supported_embeddings = ["HOPE", "LaplacianEigenmaps"]
     if embedding is None:
         L = compute_laplacian_matrix(A)
         D = degree_matrix(A)
@@ -542,12 +578,12 @@ def SSC_ShiMalik(A, n_clusters = None, plot_eig=False, plot_fiedler=False, embed
         idx = eigenvalues.argsort()
         sortedEigenvalues = eigenvalues[idx].real
         sortedEigenvectors = eigenvectors[:,idx].real
-        j, fiedler_eigenvalue, fiedler_eigenvector = next(([j, eigenvalue, sortedEigenvectors[j]] for j, eigenvalue in enumerate(sortedEigenvalues) if (round(eigenvalue, 6) != 0)), None)
 
         if n_clusters is None:
             n_clusters = computeBestK(sortedEigenvalues)
 
         train = sortedEigenvectors[:, :n_clusters]
+       
     else:
         if (embedding in supported_embeddings):
     
@@ -565,14 +601,12 @@ def SSC_ShiMalik(A, n_clusters = None, plot_eig=False, plot_fiedler=False, embed
     fcm.fit(train)
     labels = fcm.predict(train)
     centers = fcm.centers
-    print("labels: ", labels)
-    print("centers: ", centers)
 
     return labels
 
-def HSC_ShiMalik(A, n_clusters = None, plot_eig=False, plot_fiedler=False, embedding = None, d=2, beta=0.01):
+def hsc_shimalik(A, n_clusters = None, embedding = None, d=2, beta=0.01):
 
-  supported_embeddings = ["node2vec", "HOPE", "LaplacianEigenmaps"]
+  supported_embeddings = ["HOPE", "LaplacianEigenmaps"]
   if embedding is None:
     L = compute_laplacian_matrix(A)
     D = degree_matrix(A)
@@ -580,12 +614,12 @@ def HSC_ShiMalik(A, n_clusters = None, plot_eig=False, plot_fiedler=False, embed
     idx = eigenvalues.argsort()
     sortedEigenvalues = eigenvalues[idx].real
     sortedEigenvectors = eigenvectors[:,idx].real
-    j, fiedler_eigenvalue, fiedler_eigenvector = next(([j, eigenvalue, sortedEigenvectors[j]] for j, eigenvalue in enumerate(sortedEigenvalues) if (round(eigenvalue, 6) != 0)), None)
-    train = sortedEigenvectors[:, :n_clusters]
     
     if n_clusters is None:
-      n_clusters = computeBestK(sortedEigenvalues)
-  
+        n_clusters = computeBestK(sortedEigenvalues)
+    
+    train = sortedEigenvectors[:, :n_clusters]
+        
   else:
     if (embedding in supported_embeddings):
         if (embedding == "HOPE"):
@@ -604,70 +638,70 @@ def HSC_ShiMalik(A, n_clusters = None, plot_eig=False, plot_fiedler=False, embed
 
   return labels
   
- #
-def Unnorm_HSC(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=False, embedding=None, d=None, beta=None):
-    labels = hardSpectralClustering(A, n_clusters, plot_eig, plot_fiedler, norm, embedding, d, beta)
+ #spectral clustering 
+def unnorm_hsc(A, n_clusters = None, norm=False, embedding=None, d=None, beta=None):
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta)
     return labels
     
-def Norm_HSC(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=True, embedding=None, d=None, beta=None):
-    labels = hardSpectralClustering(A, n_clusters, plot_eig, plot_fiedler, norm, embedding, d, beta)
+def norm_hsc(A, n_clusters = None, norm=True, embedding=None, d=None, beta=None):
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta)
     return labels
     
-def Unnorm_SSC(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=False, embedding=None, d=None, beta=None):
-    labels = softSpectralClustering(A, n_clusters, plot_eig, plot_fiedler, norm, embedding, d, beta)
+def unnorm_ssc(A, n_clusters = None, norm=False, embedding=None, d=None, beta=None):
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta)
     return labels
 
-def Norm_SSC(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=True, embedding=None, d=None, beta=None):
-    labels = softSpectralClustering(A, n_clusters, plot_eig, plot_fiedler, norm, embedding, d, beta)
+def norm_ssc(A, n_clusters = None, norm=True, embedding=None, d=None, beta=None):
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta)
     return labels
 
 #EMBEDDINGS
-def Unnorm_HSC_HOPE(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=False, embedding="HOPE", d=2, beta=0.01):
-    labels = hardSpectralClustering(A, n_clusters, plot_eig, plot_fiedler, norm, embedding, d, beta)
+def unnorm_hsc_hope(A, n_clusters = None, norm=False, embedding="HOPE", d=2, beta=0.01):
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta)
     return labels
     
-def Norm_HSC_HOPE(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=True, embedding="HOPE", d=2, beta=0.01):
-    labels = hardSpectralClustering(A, n_clusters, plot_eig, plot_fiedler, norm, embedding, d, beta)
+def norm_hsc_hope(A, n_clusters = None, norm=True, embedding="HOPE", d=2, beta=0.01):
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta)
     return labels
 
-def Unnorm_SSC_HOPE(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=False, embedding="HOPE", d=2, beta=0.01):
-    labels = softSpectralClustering(A, n_clusters, plot_eig, plot_fiedler, norm, embedding, d, beta)
+def unnorm_ssc_hope(A, n_clusters = None, norm=False, embedding="HOPE", d=2, beta=0.01):
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta)
     return labels
     
-def Norm_SSC_HOPE(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=True, embedding="HOPE", d=2, beta=0.01):
-    labels = softSpectralClustering(A, n_clusters, plot_eig, plot_fiedler, norm, embedding, d, beta)
+def norm_ssc_hope(A, n_clusters = None, norm=True, embedding="HOPE", d=2, beta=0.01):
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta)
     return labels
     
-def HSC_ShiMalik_HOPE(A, n_clusters = None, plot_eig=False, plot_fiedler=False, embedding="HOPE", d=2, beta=0.01):
-    labels = HSC_ShiMalik(A, n_clusters, plot_eig, plot_fiedler, embedding, d, beta)
+def hsc_shimalik_hope(A, n_clusters = None, embedding="HOPE", d=2, beta=0.01):
+    labels = hsc_shimalik(A, n_clusters, embedding, d, beta)
     return labels
     
-def SSC_ShiMalik_HOPE(A, n_clusters = None, plot_eig=False, plot_fiedler=False, embedding="HOPE", d=2, beta=0.01):
-    labels = SSC_ShiMalik(A, n_clusters, plot_eig, plot_fiedler, embedding, d, beta)
+def ssc_shimalik_hope(A, n_clusters = None, embedding="HOPE", d=2, beta=0.01):
+    labels = ssc_shimalik(A, n_clusters, embedding, d, beta)
     return labels
 
-def Unnorm_HSC_LaplacianEigenmaps(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=False, embedding="LaplacianEigenmaps", d=2, beta=None):
-    labels = hardSpectralClustering(A, n_clusters, plot_eig, plot_fiedler, norm, embedding, d, beta)
+def unnorm_hsc_laplacianeigenmaps(A, n_clusters = None, norm=False, embedding="LaplacianEigenmaps", d=2, beta=None):
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta)
     return labels
     
-def Norm_HSC_LaplacianEigenmaps(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=True, embedding="LaplacianEigenmaps", d=2, beta=None):
-    labels = hardSpectralClustering(A, n_clusters, plot_eig, plot_fiedler, norm, embedding, d, beta)
+def norm_hsc_laplacianeigenmaps(A, n_clusters = None, norm=True, embedding="LaplacianEigenmaps", d=2, beta=None):
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta)
     return labels
     
-def Unnorm_SSC_LaplacianEigenmaps(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=False, embedding="LaplacianEigenmaps", d=2, beta=None):
-    labels = softSpectralClustering(A, n_clusters, plot_eig, plot_fiedler, norm, embedding, d, beta)
+def unnorm_ssc_laplacianeigenmaps(A, n_clusters = None, norm=False, embedding="LaplacianEigenmaps", d=2, beta=None):
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta)
     return labels
     
-def Norm_SSC_LaplacianEigenmaps(A, n_clusters = None, plot_eig=False, plot_fiedler=False, norm=True, embedding="LaplacianEigenmaps", d=2, beta=None):
-    labels = softSpectralClustering(A, n_clusters, plot_eig, plot_fiedler, norm, embedding, d, beta)
+def norm_ssc_laplacianeigenmaps(A, n_clusters = None, norm=True, embedding="LaplacianEigenmaps", d=2, beta=None):
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta)
     return labels
     
-def HSC_ShiMalik_LaplacianEigenmaps(A, n_clusters = None, plot_eig=False, plot_fiedler=False, embedding="LaplacianEigenmaps", d=2, beta=None):
-    labels = HSC_ShiMalik(A, n_clusters, plot_eig, plot_fiedler, embedding, d, beta)
+def hsc_shimalik_laplacianeigenmaps(A, n_clusters = None, embedding="LaplacianEigenmaps", d=2, beta=None):
+    labels = hsc_shimalik(A, n_clusters, embedding, d, beta)
     return labels
     
-def SSC_ShiMalik_LaplacianEigenmaps(A, n_clusters = None, plot_eig=False, plot_fiedler=False, embedding="LaplacianEigenmaps", d=2, beta=None):
-    labels = SSC_ShiMalik(A, n_clusters, plot_eig, plot_fiedler, embedding, d, beta)
+def ssc_shimalik_laplacianeigenmaps(A, n_clusters = None, embedding="LaplacianEigenmaps", d=2, beta=None):
+    labels = ssc_shimalik(A, n_clusters, embedding, d, beta)
     return labels
 
 

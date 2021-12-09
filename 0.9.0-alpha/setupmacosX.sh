@@ -14,6 +14,7 @@ if [[ $OSTYPE == 'darwin'* ]]; then
   pip install python-dateutil
   pip install pytz
   conda install -c schrodinger pymol
+  python create_config_file.py
 fi
 
 

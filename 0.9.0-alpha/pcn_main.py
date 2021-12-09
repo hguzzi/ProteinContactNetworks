@@ -5,21 +5,13 @@ import numpy as np
 from scipy.linalg import eigh
 import pcn_pymol_scripts
 from sys import platform
+import configparser
 
-supported_algorithms_clustering = ["Unnorm_SSC", "Norm_SSC", "Unnorm_HSC", "Norm_HSC", "HSC_ShiMalik", "SSC_ShiMalik"]
-supported_algorithms_embeddings = ["Unnorm_SSC_HOPE", "Norm_SSC_HOPE", "Unnorm_HSC_HOPE", "Norm_HSC_HOPE", "HSC_ShiMalik_HOPE", "SSC_ShiMalik_HOPE",
-                                    "Unnorm_SSC_LaplacianEigenmaps", "Norm_SSC_LaplacianEigenmaps", "Unnorm_HSC_LaplacianEigenmaps", "Norm_HSC_LaplacianEigenmaps",
-                                    "HSC_ShiMalik_LaplacianEigenmaps", "SSC_ShiMalik_LaplacianEigenmaps"]
-supported_algorithms_communities = ["Louvain", "Leiden", "Walktrap", "Asyn_fluidc", "Greedy_modularity", "Infomap", "Spinglass"]
-
-
-supported_algorithms_clustering_lw = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik"]
-supported_algorithms_embeddings_lw=list()
-for i in supported_algorithms_embeddings :
-       supported_algorithms_embeddings_lw.append(i.lower()) 
-supported_algorithms_communities_lw = ["louvain", "leiden", "walktrap", "asyn_fluidc", "greedy_modularity", "infomap", "spinglass"]
-
-
+supported_algorithms_clustering = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik"]
+supported_algorithms_embeddings = ["unnorm_ssc_hope", "norm_ssc_hope", "unnorm_hsc_hope", "norm_hsc_hope", "hsc_shimalik_hope", "ssc_shimalik_hope",
+                                   "unnorm_ssc_laplacianeigenmaps", "norm_ssc_laplacianeigenmaps", "unnorm_hsc_laplacianeigenmaps", "norm_hsc_laplacianeigenmaps",
+                                   "hsc_shimalik_laplacianeigenmaps", "ssc_shimalik_laplacianeigenmaps"]
+supported_algorithms_communities = ["louvain", "leiden", "walktrap", "asyn_fluidc", "greedy_modularity", "infomap", "spinglass"]
 
 if platform == "linux" or platform == "linux2":
     # linux
@@ -32,7 +24,42 @@ elif platform == "darwin":
 elif platform == "win32":
     # Windows...
     add_slash_to_path = '\\'
-    supported_algorithms_communities.remove("Infomap")
+    supported_algorithms_communities.remove("infomap")
+
+
+dict_supported_algorithms_clustering = dict()
+dict_supported_algorithms_embeddings = dict()
+dict_supported_algorithms_communities = dict()
+
+dict_supported_algorithms_clustering[str (0)] = "all"
+for i, algorithm in enumerate(supported_algorithms_clustering):
+    dict_supported_algorithms_clustering[str (i+1)] = algorithm
+
+dict_supported_algorithms_embeddings[str (0)] = "all"
+for i, algorithm in enumerate(supported_algorithms_embeddings):
+    dict_supported_algorithms_embeddings[str (i+1)] = algorithm
+
+dict_supported_algorithms_communities[str (0)] = "all"   
+for i, algorithm in enumerate(supported_algorithms_communities):
+    dict_supported_algorithms_communities[str (i+1)] = algorithm
+
+
+if(os.path.isfile(os.getcwd()+add_slash_to_path+"config.ini")):
+    print("config file found!")
+    config_obj = configparser.ConfigParser()
+    config_obj.read(os.getcwd()+add_slash_to_path+"config.ini")
+    paths = config_obj["user_paths"]
+    output_path = paths["output_path"]
+    proteins_path = paths["proteins_path"]
+    adj_filespath = paths["adj_filespath"]
+    
+    print("Paths in the config file: \n output path = {} \n proteins_path = {} \n adj_filespath = {}".format(output_path, proteins_path, adj_filespath))
+    use_config_choice=int(input("Please select 0 if you DON'T want to use the paths in this config file, otherwise select another numeric key: "))
+    
+    if(use_config_choice==0):
+        output_path = str (input("Insert Root Path of the Outputs: "))
+        print('Input the Directory containing Input Files')
+        proteins_path = str (input("Insert Proteins filepath: "))
 
 
 print("Protein Contact Network Analyzer 0.0.9b ")
@@ -49,12 +76,12 @@ end=False
 
 while (end==False):
     print('As First Step you must choose Format File Input: PDB structures or Preprocessed PCN')
-    initial_choice = str (input("Digit pdb' to use .pdb files or  'adj' to load existing PCN: "))
+    initial_choice = str (input("Digit pdb' to use .pdb files or  'adj' to load existing PCN: ")).casefold()
     
     
     print('Input the Directory in which you want to store the outputs')
     print('The software will create three subdirectories')
-    output_path = str (input("Insert Root Path of the Outputs: "))
+    #output_path = str (input("Insert Root Path of the Outputs: "))
     
     if(not os.path.isdir(output_path)):
         os.makedirs(output_path)
@@ -63,29 +90,40 @@ while (end==False):
         output_path = output_path+add_slash_to_path
     print('')
     
-    print('Input the Directory containing Input Files')
+    #print('Input the Directory containing Input Files')
     
-    proteins_path = str (input("Insert Proteins filepath: "))
+    #proteins_path = str (input("Insert Proteins filepath: "))
     is_dir_prot = os.path.isdir(proteins_path)
     
     if is_dir_prot:
             
         if (not proteins_path.endswith(add_slash_to_path)):
-            proteins_path = proteins_path+add_slash_to_path
+            protein_list_dir = [file for file in os.listdir(proteins_path) if file.endswith('.pdb')]
+            print("List of proteins in {}: {}".format(proteins_path, protein_list_dir))
+            
             print('Please Insert Protein PDB Identifiers, separated by comma, without .pdb, e.g. 7nxc for 7nxc.pdb ')
-            proteins_list = [protein for protein in input("Enter proteins list items (splitted by ','): ").split(',')]
+            protein_choice = str(input("Enter proteins list items (splitted by ',') or 'all': "))
+        
+            if protein_choice.casefold() == 'all':
+                proteins_list = protein_list_dir            
+            else:
+                proteins_list = [protein.casefold() for protein in protein_choice.split(',')] #strip space
+            
+            proteins_path = proteins_path+add_slash_to_path
             pdb_list = proteins_list.copy()
             for i, protein in enumerate(pdb_list):
                 if (not protein.endswith('.pdb')):
                     pdb_list[i] = protein+'.pdb'
-            all_prot_files_exists = pcn_final.checkIfFilesExists(pdb_list, "pdb", proteins_path) #add_slash_to_path is path separator 
+            pcn_final.checkIfFilesExists(pdb_list, "pdb", proteins_path) #add_slash_to_path is path separator 
                     
     else:
          raise Exception("'{}' is not a directory.".format(proteins_path))
       
     if(initial_choice == 'adj'):
-        print('Please insert the path of the directory containing Adjacency Matrices')
-        adj_filespath = str( input("Insert Adjacency matrix filepath: "))
+    
+        if(use_config_choice==0):
+            print('Please insert the path of the directory containing Adjacency Matrices')
+            adj_filespath = str( input("Insert Adjacency matrix filepath: "))
     
         is_dir_adj = os.path.isdir(adj_filespath)
         
@@ -93,119 +131,166 @@ while (end==False):
             adj_filespath = adj_filespath+add_slash_to_path
             
         if (is_dir_adj and is_dir_prot):
-            adj_list = [protein+"_adj_mat.txt" for protein in proteins_list]
-            all_adj_files_exists = pcn_final.checkIfFilesExists(adj_list, initial_choice, adj_filespath)
-            if (all_adj_files_exists and all_prot_files_exists):
-                all_files_exists=True
-            else: 
-                all_files_exists = False
+            adj_list = [protein.casefold()+"_adj_mat.txt" for protein in proteins_list]
+            pcn_final.checkIfFilesExists(pdb_list, "adj", proteins_path, adj_filespath) #add_slash_to_path is path separator 
         else:
             raise Exception("'{}' is not a directory.".format(adj_filespath))
     elif (initial_choice == 'pdb'):
-        all_files_exists = all_prot_files_exists
+        min_ = int(input("Entering non covalent bonds threshold distance for PCN costruction: ") or 4)    
+        max_ = int(input("Entering only significant bonds threshold distance for PCN costruction : ") or 8)
     else: 
         raise Exception("'initial_choice' input must be 'pdb' or 'adj' but '{}' given.".format(initial_choice))
        
-    if all_files_exists:
-        print('Please select the analysis approach: SPECTRAL|EMBEDDINGS|COMMUNITY'+'\n')
-        print('Spectral will apply spectral clustering on PCN'+'\n')
-        print('Embedding will apply embedding followed by clustering'+'\n')
-        print('Community will apply community discovery'+'\n')
-        type_choice = str( input("Choice between 'spectral' (Spectral Clustering), 'embeddings' (Embeddings+Spectral Clustering) and 'community' (Community Extraction): "))
-        if (type_choice.casefold() == 'spectral'):
-            algorithm_choice = str( input("Choice one Spectral Clustering algoritm from {}: ".format(str(supported_algorithms_clustering))))
-        elif (type_choice.casefold() == 'embeddings'):
-            algorithm_choice = str( input("Choice one Embedded Spectral Clustering algoritm from {}: ".format(str(supported_algorithms_embeddings))))
-            d = int (input("Enter d parameter for d-dimensional embedding: "))
-            beta = None
-            if ("HOPE" in algorithm_choice):
-                beta = float(input("Enter beta parameter for d-dimensional HOPE embedding: "))
-        elif (type_choice == 'community'):
-            algorithm_choice = str( input("Choice one Community Extraction algoritm from {}: ".format(str(supported_algorithms_communities))))
-            print('Algorithm:'+algorithm_choice)
-        else:
-            raise Exception("'type_choice' input must be 'spectral', 'embeddings' or 'community' but '{}' given.".format(type_choice))
+    print('Please select the analysis approach: SPECTRAL|EMBEDDINGS|COMMUNITY'+'\n')
+    print('Spectral will apply spectral clustering on PCN'+'\n')
+    print('Embedding will apply embedding followed by clustering'+'\n')
+    print('Community will apply community discovery'+'\n')
+    type_choice = str( input("Choice between 'spectral' (Spectral Clustering), 'embeddings' (Embeddings+Clustering) and 'community' (Community Extraction): ")).casefold()
+    algorithms_choice = []
+    if (type_choice == 'spectral'):
+        dict_supported_algorithms_type_selected = dict_supported_algorithms_clustering
+        string_to_print = ""
+        for i, algorithm in dict_supported_algorithms_clustering.items():
+            string_to_print =  string_to_print+"Type '{}' for '{}' algorithm/s \n".format(i, algorithm)
+        algorithms_choice_numeric =  str( input("Choice one or a list (splitted by ',') Spectral Clustering algoritms from: \n{}Choice: ".format(string_to_print)))
+        if(algorithms_choice_numeric  == "0"): #'all'
+            algorithms_choice = supported_algorithms_clustering
+            print('Selected algorithms: '+ str(algorithms_choice))
+                
+    elif (type_choice == 'embeddings'):
+        dict_supported_algorithms_type_selected = dict_supported_algorithms_embeddings
+        string_to_print = ""
+        for i, algorithm in dict_supported_algorithms_embeddings.items():
+            string_to_print =  string_to_print+"Type '{}' for '{}' algorithm/s \n".format(i, algorithm)
+        algorithms_choice_numeric =  str( input("Choice one or a list (splitted by ',') Clustering Embeddings algoritms from: \n{}Choice: ".format(string_to_print)))
+        if(algorithms_choice_numeric == "0"):
+            algorithms_choice =  supported_algorithms_embeddings
+            print('Selected algorithms: '+ str(algorithms_choice))
+
+    elif (type_choice == 'community'):
+        dict_supported_algorithms_type_selected = dict_supported_algorithms_communities
+        string_to_print = ""
+        for i, algorithm in dict_supported_algorithms_communities.items():
+            string_to_print =  string_to_print+"Type '{}' for '{}' algorithm/s \n".format(i, algorithm)
+        algorithms_choice_numeric = str( input("Choice one or a list (splitted by ',') Community Extraction algoritms from: \n{}Choice: ".format(string_to_print)))
+        if(algorithms_choice_numeric == "0"):
+            algorithms_choice = supported_algorithms_communities
+            print('Selected algorithms: '+ str(algorithms_choice))
+    else:
+        raise Exception("'type_choice' input must be 'spectral', 'embeddings' or 'community' but '{}' given.".format(type_choice))           
+    
+    if (algorithms_choice_numeric != "0"):
+        if (isinstance(algorithms_choice_numeric, str)):
+            if(algorithms_choice_numeric.split(',')):
+                algorithms_choice_numeric =  [str(algorithm_choice_numeric) for algorithm_choice_numeric in algorithms_choice_numeric.split(',') if(algorithm_choice_numeric != "0")]
         
-        if ((algorithm_choice not in supported_algorithms_clustering) and (algorithm_choice not in supported_algorithms_embeddings) and
-            (algorithm_choice not in supported_algorithms_communities)):
-            raise Exception("Algorithm {} not supported yet.".format(algorithm_choice))
-        else:
-            for protein in proteins_list:
-    
-                p_name = protein[:4]   #p = 6vxx, protein = 6vxx.pdb, adj = 6vxx_adj_mat.txt
-                print(("protein {}: COMPUTING NOW").format(p_name))
-                
-                protein_path = proteins_path+p_name+".pdb"
-                atoms = pcn_final.readPDBFile(protein_path)
-                residues = pcn_final.getResidueDistance(atoms)
-                dict_residue_name = pcn_final.associateResidueName(residues)
-                residue_names = np.array(list (dict_residue_name.items()))
-                
-                if(initial_choice == 'pdb'):
-                    
-                    min_ = int(input("Entering non covalent bonds threshold distance for PCN costruction: ") or 4)    
-                    max_ = int(input("Entering only significant bonds threshold distance for PCN costruction : ") or 8)
-                    print("computing adjacency matrix... (This may take time)")
-                    A = pcn_final.adjacent_matrix(output_path, residues, p_name, min_, max_)
-    
-                else:     #'adj'           
-                    print("reading adjacency matrix...")
-                    A = pcn_final.read_adj_mat(adj_filespath, p_name)
-                    
-                
-                if ((algorithm_choice in supported_algorithms_clustering) or (algorithm_choice in supported_algorithms_embeddings)):
-    
-                    k_choice = str(input("Entering k for clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))    
-                    if (k_choice == 'best_k'):
+        for algorithm_choice_numeric in algorithms_choice_numeric :
+            algorithms_choice.append(dict_supported_algorithms_type_selected[algorithm_choice_numeric])            
+        
+        print('Selected algorithms: '+ str(algorithms_choice))
+        
+        not_supported_algorithms = []
+        for algorithm_choice in algorithms_choice:
+                      
+            if ((algorithm_choice not in supported_algorithms_clustering) and (algorithm_choice not in supported_algorithms_embeddings) and
+               (algorithm_choice not in supported_algorithms_communities)):
+                not_supported_algorithms.append(algorithm_choice)
+                algorithms_choice.remove(algorithm_choice)
                         
+        if (len(not_supported_algorithms)>0):
+            print("Algorithms {} not supported yet.".format(str(not_supported_algorithms)))
+              
+    if (len(algorithms_choice)>0):
+              
+        for protein in proteins_list:
+      
+            p_name = protein[:4]   #p = 6vxx, protein = 6vxx.pdb, adj = 6vxx_adj_mat.txt
+            print(("protein {}: COMPUTING NOW").format(p_name))
+                  
+            protein_path = proteins_path+p_name+".pdb"
+            atoms = pcn_final.readPDBFile(protein_path)
+            residues = pcn_final.getResidueDistance(atoms)
+            dict_residue_name = pcn_final.associateResidueName(residues)
+            residue_names = np.array(list (dict_residue_name.items()))
+                 
+            if(initial_choice == 'pdb'):
+                     
+                print("computing adjacency matrix for protein {}... (This may take time)".format(p_name))
+                A = pcn_final.adjacent_matrix(output_path, residues, p_name, min_, max_)
+      
+            else:     #'adj'           
+                print("reading adjacency matrix for protein {}...".format(p_name))
+                A = pcn_final.read_adj_mat(adj_filespath, p_name)
+                      
+            if ((type_choice == 'spectral') or (type_choice == 'embeddings')):              
+              
+                k_choice = str(input("Entering k for clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
+                if(type_choice == 'embeddings'):
+                                             
+                    d = int (input("Enter d parameter for d-dimensional embedding: "))
+                    beta = None
+                    if ("hope" in algorithm_choice):
+                        beta = float(input("Enter beta parameter for d-dimensional HOPE embedding: "))
+              
+            else: #type_choice == 'community'
+                G = nx.from_numpy_matrix(A)  
+                  
+            for algorithm_choice in algorithms_choice:  
+                  
+                print(("protein {} with algorithm {}: COMPUTING NOW").format(p_name, algorithm_choice))
+                if ((type_choice == 'spectral') or (type_choice == 'embeddings')):  
+                          
+                    if (k_choice == 'best_k'):
+                               
                         n_of_best_ks = int(input("Enter the number of best_ks to try: "))
-                    
+                          
                         if('ShiMalik' in algorithm_choice):
                             L = pcn_final.compute_laplacian_matrix(A)
                             D = pcn_final.degree_matrix(A) 
                             eigenvalues = eigh(L, D, eigvals_only=True)   
-                        
+                                
                         elif('Norm' in algorithm_choice):
                             L = pcn_final.compute_normalized_laplacian(A)
                             eigenvalues, eigenvectors  = np.linalg.eig(L)    
-                        
+                               
                         else: #'Unnorm' in algorithm_choice
                             L = pcn_final.compute_laplacian_matrix(A)
                             eigenvalues, eigenvectors = np.linalg.eig(L)
-                        
+                                
                         ks = pcn_final.computeBestK(eigenvalues, n_k=n_of_best_ks) 
-                       
+                               
                     elif(k_choice.split(',')):
                         ks =  [int(item) for item in k_choice.split(',')]
-                    
+                           
                     else:
                         raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
-    
+            
                     for k in ks:     
                         method_to_call = getattr(pcn_final, algorithm_choice)
-                        
-                        if(algorithm_choice in supported_algorithms_embeddings):
-                            labels = method_to_call(A, k, d, beta)
-                        else: #algorithm_choice in supported_algorithms_clustering
+                        if type_choice == 'embeddings':
+                            labels = method_to_call(A, k, d=d, beta=beta)
+                        elif type_choice == 'spectral':
                             labels = method_to_call(A, k)
-                       ## /d=None
-                       ##     beta=None
-    
+                            d=None
+                            beta=None
+
                         pcn_final.save_labels(output_path, labels, residue_names, p_name, algorithm_choice, d, beta)
+                        #pymol 
                         if(type_choice == 'embeddings'):
                             pcn_pymol_scripts.pymol_plot_embeddings(protein_path, output_path, "ClustersEmbeddings", algorithm_choice, k, d, beta)
-                        
-                        else:
+                                     
+                        else:#clustering
                             pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Clusters", algorithm_choice, k)
+                                    
+                else:#type_choice = 'community'
                             
-                else:# is community extraction
-                    G = nx.from_numpy_matrix(A)
                     method_to_call = getattr(pcn_final, algorithm_choice)
                     labels = method_to_call(G)
-                    pcn_final.save_labels(output_path, labels, residue_names, p_name,  method=algorithm_choice)
                     n_coms = int( max(labels) + 1)
+                    pcn_final.save_labels(output_path, labels, residue_names, p_name,  method=algorithm_choice)
                     pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Communities", algorithm_choice, n_coms)
-    print('Computation Completed')
-    choice=int(input('Please select 0 to make another analsys, 1 to end program'))
-    if (choice==0):
-         end=False
+                          
+    print('Computation Completed.')
+    choice=int(input('Please select 0 to make another analsys, otherwise select another numeric key to end the program: '))
+    if (choice!=0):
+        end=True

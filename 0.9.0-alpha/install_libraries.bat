@@ -10,3 +10,4 @@ call pip install wurlitzer
 call conda install -c conda-forge -c schrodinger pymol-bundle
 call pip install python-dateutil
 call pip install pytz
+call pip install configparser

@@ -25,8 +25,10 @@ def get_colors(selection='', quiet=1):
     for tuplepair in pymol.querying.get_color_indices(selection):
         pymol_color_list.append(tuplepair[0])
     
-    pymol_color_list.sort()
+    #pymol_color_list.sort()
     if not int(quiet): print(pymol_color_list)
+    pymol_color_list.remove('black')
+    pymol_color_list.remove('white')
     return pymol_color_list
 
 cmd.extend('get_colors',get_colors)
@@ -70,9 +72,8 @@ def pymol_plot(protein_path, output_path, algorithm_type, algorithm_name, k):
     cmd.do("save {}{}{}Sessions{}{}_{}_{}_k{}_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, k))
     cmd.do("delete {}".format(protein))
     
-def pymol_plot_embeddings(protein_path, output_path, algorithm_type, algorithm_name, k, d, beta):
-    print("BETABETABETABETABETABTETA")
-    print(beta)
+def pymol_plot_embeddings(protein_path, output_path, algorithm_type, algorithm_name, k, d, beta=None):
+
     cmd.do("delete {}".format("all"))
     cmd.do("load {}".format(protein_path))
     
