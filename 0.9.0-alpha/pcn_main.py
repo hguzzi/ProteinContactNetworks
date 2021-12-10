@@ -261,16 +261,16 @@ while (end==False):
                                
                         n_of_best_ks = int(input("Enter the number of best_ks to try: "))
                           
-                        if('ShiMalik' in algorithm_choice):
+                        if('shimalik' in algorithm_choice):
                             L = pcn_final.compute_laplacian_matrix(A)
                             D = pcn_final.degree_matrix(A) 
                             eigenvalues = eigh(L, D, eigvals_only=True)   
                                 
-                        elif('Norm' in algorithm_choice):
+                        elif('norm' in algorithm_choice):
                             L = pcn_final.compute_normalized_laplacian(A)
                             eigenvalues, eigenvectors  = np.linalg.eig(L)    
                                
-                        else: #'Unnorm' in algorithm_choice
+                        else: #'unnorm' in algorithm_choice
                             L = pcn_final.compute_laplacian_matrix(A)
                             eigenvalues, eigenvectors = np.linalg.eig(L)
                                 

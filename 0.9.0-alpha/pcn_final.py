@@ -501,9 +501,6 @@ def hardSpectralClustering(A, n_clusters = None, norm=False, embedding=None, d=2
             L = compute_laplacian_matrix(A)
 
         sortedEigenvalues, sortedEigenvectors = computeSortEigens(L)             #sorted eigenvalues/eigenvectors
-            
-        if n_clusters is None:
-            n_clusters = computeBestK(sortedEigenvalues, n_k = 1)
         
         train = sortedEigenvectors[:, :n_clusters]
         if norm:
@@ -537,9 +534,6 @@ def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  
             L = compute_normalized_laplacian(A)
         else:
             L = compute_laplacian_matrix(A)
-        
-        if n_clusters is None:
-            n_clusters = computeBestK(sortedEigenvalues,  n_k = 1)
             
         sortedEigenvalues, sortedEigenvectors = computeSortEigens(L)            #sorted eigenvalues/eigenvectors
         train = sortedEigenvectors[:, :n_clusters]
@@ -548,7 +542,7 @@ def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  
         if norm:
             train = sortedEigenvectors/np.sqrt(np.sum(sortedEigenvectors**2))
             train = train[:, :n_clusters]
-            
+        
     else:
         if (embedding in supported_embeddings):
              
@@ -579,9 +573,6 @@ def ssc_shimalik(A, n_clusters = None, embedding=None, d=2, beta=0.01):
         idx = eigenvalues.argsort()
         sortedEigenvalues = eigenvalues[idx].real
         sortedEigenvectors = eigenvectors[:,idx].real
-
-        if n_clusters is None:
-            n_clusters = computeBestK(sortedEigenvalues)
 
         train = sortedEigenvectors[:, :n_clusters]
        
