@@ -1,5 +1,6 @@
 #IMPORT LIBRARIES
-from prody import *
+
+#from prody import *
 import sys
 import numpy as np
 import ast
@@ -63,6 +64,7 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None):
         not_existing_adj_files = []
         all_adj_files_exists = True
         for file in files:
+            print(file)
             file_path = "{}{}".format(adj_path, file)
             if((not os.path.isfile(file_path))):
                 all_adj_files_exists = False

@@ -146,12 +146,14 @@ while (end==False):
             
         if (is_dir_adj and is_dir_prot):
             adj_list = [protein.casefold()+"_adj_mat.txt" for protein in proteins_list]
-            pcn_final.checkIfFilesExists(pdb_list, "adj", proteins_path, adj_filespath) #add_slash_to_path is path separator 
+            pcn_final.checkIfFilesExists(adj_list, "adj", proteins_path, adj_filespath) #add_slash_to_path is path separator 
         else:
             raise Exception("'{}' is not a directory.".format(adj_filespath))
+            
     elif (initial_choice == 'pdb'):
         min_ = int(input("Entering non covalent bonds threshold distance for PCN costruction: ") or 4)    
         max_ = int(input("Entering only significant bonds threshold distance for PCN costruction : ") or 8)
+        
     else: 
         raise Exception("'initial_choice' input must be 'pdb' or 'adj' but '{}' given.".format(initial_choice))
        
