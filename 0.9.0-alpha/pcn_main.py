@@ -43,7 +43,7 @@ dict_supported_algorithms_communities[str (0)] = "all"
 for i, algorithm in enumerate(supported_algorithms_communities):
     dict_supported_algorithms_communities[str (i+1)] = algorithm
 
-
+use_config_choice = None
 if(os.path.isfile(os.getcwd()+add_slash_to_path+"config.ini")):
     print("config file found!")
     config_obj = configparser.ConfigParser()
@@ -57,14 +57,22 @@ if(os.path.isfile(os.getcwd()+add_slash_to_path+"config.ini")):
     use_config_choice=int(input("Please select 0 if you DON'T want to use the paths in this config file, otherwise select another numeric key: "))
     
     if(use_config_choice==0):
+            
+        print('Input the Directory in which you want to store the outputs')
+        print('The software will create three subdirectories')
         output_path = str (input("Insert Root Path of the Outputs: "))
-        print('Input the Directory containing Input Files')
+        print('Input the Directory containing Input Files') 
         proteins_path = str (input("Insert Proteins filepath: "))
-else:#config file not found, create it
-    output_path = str (input("Insert Root Path of the Outputs: "))
-    proteins_path = str (input("Insert Proteins filepath: "))
-    adj_filespath = str( input("Insert Adjacency matrix filepath: "))
 
+else:#config file not found, create it
+    print('No config file found... Start to create a new one')
+    print('Input the Directory in which you want to store the outputs')
+    print('The software will create three subdirectories')
+    output_path = str (input("Insert Root Path of the Outputs: "))
+    print('Input the Directory containing Input Files')    
+    proteins_path = str (input("Insert Proteins filepath: "))
+    print('Please insert the path of the directory containing Adjacency Matrices')
+    adj_filespath = str( input("Insert Adjacency matrix filepath: "))
 
     config = configparser.ConfigParser()
     # Add the structure to the file we will create
@@ -75,6 +83,8 @@ else:#config file not found, create it
     # Write the new structure to the new file
     with open(os.getcwd()+add_slash_to_path+"config.ini", 'w') as configfile:
         config.write(configfile)
+        
+    print('config file successfully created')
         
 print("Protein Contact Network Analyzer 0.0.9b ")
 
@@ -92,11 +102,6 @@ while (end==False):
     print('As First Step you must choose Format File Input: PDB structures or Preprocessed PCN')
     initial_choice = str (input("Digit pdb' to use .pdb files or  'adj' to load existing PCN: ")).casefold()
     
-    
-    print('Input the Directory in which you want to store the outputs')
-    print('The software will create three subdirectories')
-    #output_path = str (input("Insert Root Path of the Outputs: "))
-    
     if(not os.path.isdir(output_path)):
         os.makedirs(output_path)
     
@@ -104,9 +109,6 @@ while (end==False):
         output_path = output_path+add_slash_to_path
     print('')
     
-    #print('Input the Directory containing Input Files')
-    
-    #proteins_path = str (input("Insert Proteins filepath: "))
     is_dir_prot = os.path.isdir(proteins_path)
     
     if is_dir_prot:
@@ -134,11 +136,10 @@ while (end==False):
          raise Exception("'{}' is not a directory.".format(proteins_path))
       
     if(initial_choice == 'adj'):
-    
+        
         if(use_config_choice==0):
             print('Please insert the path of the directory containing Adjacency Matrices')
             adj_filespath = str( input("Insert Adjacency matrix filepath: "))
-    
         is_dir_adj = os.path.isdir(adj_filespath)
         
         if (not adj_filespath.endswith(add_slash_to_path)):
@@ -280,8 +281,11 @@ while (end==False):
                            
                     else:
                         raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
-            
-                    for k in ks:     
+                    
+                    print("Selected ks: {}".format(str(ks)))
+                    for k in ks:   
+                    
+                        print("{} with {} with k = {}".format(p_name, algorithm_choice, k))
                         method_to_call = getattr(pcn_final, algorithm_choice)
                         if type_choice == 'embeddings':
                             labels = method_to_call(A, k, d=d, beta=beta)
@@ -291,6 +295,7 @@ while (end==False):
                             beta=None
 
                         pcn_final.save_labels(output_path, labels, residue_names, p_name, algorithm_choice, d, beta)
+                        
                         #pymol 
                         if(type_choice == 'embeddings'):
                             pcn_pymol_scripts.pymol_plot_embeddings(protein_path, output_path, "ClustersEmbeddings", algorithm_choice, k, d, beta)

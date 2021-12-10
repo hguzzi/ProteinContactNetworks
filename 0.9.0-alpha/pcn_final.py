@@ -73,8 +73,7 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None):
         if(not all_adj_files_exists):
             for protein in not_existing_adj_files:
                 p_name = protein[:4]   #adj = 6vxx_adj_mat.txt
-                print(("protein {} adj matrix missing... COMPUTING NOW").format(p_name))
-                      
+                print(("protein {} adj matrix missing... COMPUTING NOW (This may take time)").format(p_name))
                 protein_path = proteins_path+p_name+".pdb"
                 atoms = readPDBFile(protein_path)
                 residues = getResidueDistance(atoms)
