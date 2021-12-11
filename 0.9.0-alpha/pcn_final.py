@@ -1,6 +1,5 @@
 #IMPORT LIBRARIES
 
-#from prody import *
 import sys
 import numpy as np
 import ast

@@ -12,9 +12,15 @@ elif platform == "win32":
     # Windows...
     add_slash_to_path = '\\' 
     
+print('Config.ini file creation...')
+print('Input the Directory in which you want to store the outputs')
+print('The software will create three subdirectories')
 output_path = str (input("Insert Root Path of the Outputs: "))
+print('Input the Directory containing Input Files')    
 proteins_path = str (input("Insert Proteins filepath: "))
+print('Please insert the path of the directory containing Adjacency Matrices')
 adj_filespath = str( input("Insert Adjacency matrix filepath: "))
+print('')
 
 
 config = configparser.ConfigParser()
