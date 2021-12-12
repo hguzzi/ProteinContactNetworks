@@ -18,43 +18,47 @@ print('The software will create three subdirectories')
 output_path = str (input("Insert Root Path of the Outputs: "))
 if(not os.path.isdir(output_path)):
     print("{} directory not exists.".format(output_path))
-    end = False
-    while(end): 
-        output_choice = int(input("Press 0 if you want to create a new directory with path {} or type 1 if you want to retype the Output folder path")) 
+    
+    while(True): 
+        output_choice = int(input("Press 0 if you want to create a new directory with path {} or type 1 if you want to retype the Output folder path: ".format(output_path))) 
         if(output_choice == 0):
             os.makedirs(output_path)
-            end = True
+            break
         elif(output_choice == 1):
             output_path = str (input("Insert Root Path of the Outputs: "))     
-            end = True
+            if(os.path.isdir(output_path)):
+                break
         #else: continue
             
 print('Input the Directory containing Input Files')    
 proteins_path = str (input("Insert Proteins filepath: "))
 if(not os.path.isdir(proteins_path)):
     print("{} directory not exists.".format(proteins_path))
-    end = False
-    while(end): 
-        proteins_choice = int(input("Press 0 if you want to create a new directory with path {} or type 1 if you want to retype the Protein folder path")) 
+    while(True): 
+        proteins_choice = int(input("Press 0 if you want to create a new directory with path {} or type 1 if you want to retype the Protein folder path: ".format(proteins_path))) 
         if(proteins_choice == 0):
             os.makedirs(proteins_path)
-            end = True
+            break
         elif(proteins_choice == 1):
-            proteins_path = str (input("Insert Proteins filepath: "))      
+            proteins_path = str (input("Insert Proteins filepath: ")) 
+            if(os.path.isdir(proteins_path)):
+                break
+            
         #else: continue
     
 print('Please insert the path of the directory containing Adjacency Matrixs')
 adj_filespath = str( input("Insert Adjacency matrix filepath: "))
 if(not os.path.isdir(adj_filespath )):
     print("{} directory not exists.".format(adj_filespath ))
-    end = False
-    while(end): 
-        adj_choice = int(input("Press 0 if you want to create a new directory with path {} or type 1 if you want to retype the adjacency matrixs folder path")) 
+    while(True): 
+        adj_choice = int(input("Press 0 if you want to create a new directory with path {} or type 1 if you want to retype the adjacency matrixs folder path: ".format(adj_filespath))) 
         if(adj_choice == 0):
             os.makedirs(adj_filespath)
-            end = True
+            break
         elif(adj_choice == 1):
             adj_filespath = str( input("Insert Adjacency matrix filepath: "))   
+            if(os.path.isdir(adj_filespath)):
+                break
         #else: continue
 print('')
 

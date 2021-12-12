@@ -63,7 +63,7 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None):
         not_existing_adj_files = []
         all_adj_files_exists = True
         for file in files:
-            print(file)
+            
             file_path = "{}{}".format(adj_path, file)
             if((not os.path.isfile(file_path))):
                 all_adj_files_exists = False
@@ -72,7 +72,7 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None):
         if(not all_adj_files_exists):
             for protein in not_existing_adj_files:
                 p_name = protein[:4]   #adj = 6vxx_adj_mat.txt
-                print(("protein {} adj matrix missing... COMPUTING NOW (This may take time)").format(p_name))
+                print(("protein {} adj matrix missing...").format(p_name))
                 protein_path = proteins_path+p_name+".pdb"
                 atoms = readPDBFile(protein_path)
                 residues = getResidueDistance(atoms)
@@ -81,7 +81,7 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None):
                                                 
                 min_ = int(input("Entering non covalent bonds threshold distance for PCN costruction: ") or 4)    
                 max_ = int(input("Entering only significant bonds threshold distance for PCN costruction : ") or 8)
-                print("computing adjacency matrix... (CAN BE SLOW)")
+                print("computing adjacency matrix... (This may take time)")
                 output_path = os.path.abspath(os.path.join(adj_path, os.pardir))+add_slash_to_path
                 A = adjacent_matrix(output_path, residues, p_name, min_, max_)
             
