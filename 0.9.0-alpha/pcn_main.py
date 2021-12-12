@@ -71,7 +71,7 @@ else:#config file not found, create it
     output_path = str (input("Insert Root Path of the Outputs: "))
     print('Input the Directory containing Input Files')    
     proteins_path = str (input("Insert Proteins filepath: "))
-    print('Please insert the path of the directory containing Adjacency Matrices')
+    print('Please insert the path of the directory containing Adjacency Matrixs')
     adj_filespath = str( input("Insert Adjacency matrix filepath: "))
 
     config = configparser.ConfigParser()
@@ -138,7 +138,7 @@ while (end==False):
     if(initial_choice == 'adj'):
         
         if(use_config_choice==0):
-            print('Please insert the path of the directory containing Adjacency Matrices')
+            print('Please insert the path of the directory containing Adjacency Matrixs')
             adj_filespath = str( input("Insert Adjacency matrix filepath: "))
         is_dir_adj = os.path.isdir(adj_filespath)
         
