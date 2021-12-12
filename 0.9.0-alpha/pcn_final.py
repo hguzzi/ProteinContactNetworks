@@ -381,10 +381,8 @@ def infomap(G):
     print("number of infomap communities: {}".format(int (max(labels_u)+1)))
     return labels
 
-def asyn_fluidc(G):
+def asyn_fluidc(G, k):
   
-  k = int( input("Insert k for Asyn_fluidc algorithm: "))
-  print("number of Asyn_fluidc communities: ", k)
   coms = asyn_fluidc_(G, k)
 
   dict_node_Asyn_fluidc_com = dict ()

@@ -173,6 +173,7 @@ while (end==False):
         if(algorithms_choice_numeric  == "0"): #'all'
             algorithms_choice = supported_algorithms_clustering
             print('Selected algorithms: '+ str(algorithms_choice))
+        
                 
     elif (type_choice == 'embeddings'):
         dict_supported_algorithms_type_selected = dict_supported_algorithms_embeddings
@@ -216,7 +217,32 @@ while (end==False):
                         
         if (len(not_supported_algorithms)>0):
             print("Algorithms {} not supported yet.".format(str(not_supported_algorithms)))
-              
+           
+    if ((type_choice == 'spectral') or (type_choice == 'embeddings')):
+        
+        k_initial_choice = int(input("Enter 0 if you want to use the same number of clusters k for Spectral Clustering to all the proteins: "))
+        if (k_initial_choice == 0):
+            k_choice = str(input("Entering k for clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
+            
+            if (k_choice == 'best_k'):
+                n_of_best_ks = int(input("Enter the number of best_ks to try: "))              
+                
+            elif(k_choice.split(',')):
+                ks =  [int(item) for item in k_choice.split(',')]
+                          
+            else:
+                raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
+        
+    if (type_choice == 'community'):
+        
+        if ('asyn_fluidc' in algorithms_choice):
+        
+            k_initial_choice = int(input("Enter 0 if you want to use the same number of community k for Asyn FluidC to all the proteins: "))
+            if (k_initial_choice == 0):
+                k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
+                if(k_choice.split(',')):
+                    ks =  [int(item) for item in k_choice.split(',')]
+        
     if (len(algorithms_choice)>0):
               
         for protein in proteins_list:
@@ -240,8 +266,10 @@ while (end==False):
                 A = pcn_final.read_adj_mat(adj_filespath, p_name)
                       
             if ((type_choice == 'spectral') or (type_choice == 'embeddings')):              
-              
-                k_choice = str(input("Entering k for clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
+                
+                if (k_initial_choice != 0):
+                    k_choice = str(input("Entering k for clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
+                
                 if(type_choice == 'embeddings'):
                                              
                     d = int (input("Enter d parameter for d-dimensional embedding: "))
@@ -250,39 +278,45 @@ while (end==False):
                         beta = float(input("Enter beta parameter for d-dimensional HOPE embedding: "))
               
             else: #type_choice == 'community'
+            
                 G = nx.from_numpy_matrix(A)  
                   
             for algorithm_choice in algorithms_choice:  
                   
                 print(("protein {} with algorithm {}: COMPUTING NOW").format(p_name, algorithm_choice))
                 if ((type_choice == 'spectral') or (type_choice == 'embeddings')):  
-                          
-                    if (k_choice == 'best_k'):
+                
+                    if (k_initial_choice != 0):
+                        
+                        k_choice = str(input("Entering k for clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
+                        
+                        if (k_choice == 'best_k'):     
+                            n_of_best_ks = int(input("Enter the number of best_ks to try: "))
+                                                                 
+                        elif(k_choice.split(',')):
+                            ks =  [int(item) for item in k_choice.split(',')]
                                
-                        n_of_best_ks = int(input("Enter the number of best_ks to try: "))
-                          
+                        else:
+                            raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
+                            
+                    if(k_choice == 'best_k'):
                         if('shimalik' in algorithm_choice):
                             L = pcn_final.compute_laplacian_matrix(A)
                             D = pcn_final.degree_matrix(A) 
                             eigenvalues = eigh(L, D, eigvals_only=True)   
-                                
+                                    
                         elif('norm' in algorithm_choice):
                             L = pcn_final.compute_normalized_laplacian(A)
                             eigenvalues, eigenvectors  = np.linalg.eig(L)    
-                               
+                                   
                         else: #'unnorm' in algorithm_choice
                             L = pcn_final.compute_laplacian_matrix(A)
                             eigenvalues, eigenvectors = np.linalg.eig(L)
-                                
+                                    
                         ks = pcn_final.computeBestK(eigenvalues, n_k=n_of_best_ks) 
-                               
-                    elif(k_choice.split(',')):
-                        ks =  [int(item) for item in k_choice.split(',')]
-                           
-                    else:
-                        raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
                     
                     print("Selected ks: {}".format(str(ks)))
+                    
                     for k in ks:   
                     
                         print("{} with {} with k = {}".format(p_name, algorithm_choice, k))
@@ -304,12 +338,26 @@ while (end==False):
                             pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Clusters", algorithm_choice, k)
                                     
                 else:#type_choice = 'community'
-                            
+                     
                     method_to_call = getattr(pcn_final, algorithm_choice)
-                    labels = method_to_call(G)
-                    n_coms = int( max(labels) + 1)
-                    pcn_final.save_labels(output_path, labels, residue_names, p_name,  method=algorithm_choice)
-                    pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Communities", algorithm_choice, n_coms)
+                    
+                    if (algorithm_choice == 'asyn_fluidc'):
+                        if (k_initial_choice != 0):
+                            k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
+                            if(k_choice.split(',')):
+                                ks =  [int(item) for item in k_choice.split(',')]
+                        
+                        for k in ks:
+                            labels = method_to_call(G, k)
+                            n_coms = int( max(labels) + 1)
+                            pcn_final.save_labels(output_path, labels, residue_names, p_name,  method=algorithm_choice)
+                            pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Communities", algorithm_choice, n_coms)
+                    
+                    else:
+                        labels = method_to_call(G)
+                        n_coms = int( max(labels) + 1)
+                        pcn_final.save_labels(output_path, labels, residue_names, p_name,  method=algorithm_choice)
+                        pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Communities", algorithm_choice, n_coms)
                           
     print('Computation Completed.')
     choice=int(input('Please select 0 to make another analsys, otherwise select another numeric key to end the program: '))
