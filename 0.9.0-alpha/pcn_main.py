@@ -13,6 +13,8 @@ supported_algorithms_embeddings = ["unnorm_ssc_hope", "norm_ssc_hope", "unnorm_h
                                    "hsc_shimalik_laplacianeigenmaps", "ssc_shimalik_laplacianeigenmaps"]
 supported_algorithms_communities = ["louvain", "leiden", "walktrap", "asyn_fluidc", "greedy_modularity", "infomap", "spinglass"]
 
+supported_centralities_measures = ["closeness", "eigenvector", "betweenness", "degree_c"]
+
 if platform == "linux" or platform == "linux2":
     # linux
     add_slash_to_path = '/'
@@ -123,7 +125,7 @@ while (end==False):
             if protein_choice.casefold() == 'all':
                 proteins_list = protein_list_dir            
             else:
-                proteins_list = [protein.casefold() for protein in protein_choice.split(',')] #strip space
+                proteins_list = [protein.casefold() for protein in protein_choice.replace(" ","").split(",")] #strip space
             
             proteins_path = proteins_path+add_slash_to_path
             pdb_list = proteins_list.copy()
@@ -157,7 +159,53 @@ while (end==False):
         
     else: 
         raise Exception("'initial_choice' input must be 'pdb' or 'adj' but '{}' given.".format(initial_choice))
-       
+    ###NEW
+    centrality_initial_choice =  int(input("Press 0 if you want to compute a node centrality measure: "))
+    if (centrality_initial_choice  == 0):
+        for protein in proteins_list:
+            
+            p_name = protein[:4]
+            print(("protein {}: CENTRALITY MEASURES COMPUTING NOW").format(p_name))
+                  
+            protein_path = proteins_path+p_name+".pdb"
+            atoms = pcn_final.readPDBFile(protein_path)
+            residues = pcn_final.getResidueDistance(atoms)
+            dict_residue_name = pcn_final.associateResidueName(residues)
+            residue_names = np.array(list (dict_residue_name.items()))
+                 
+            if(initial_choice == 'pdb'):
+                     
+                print("computing adjacency matrix for protein {}... (This may take time)".format(p_name))
+                A = pcn_final.adjacent_matrix(output_path, residues, p_name, min_, max_)
+      
+            else:     #'adj'           
+                print("reading adjacency matrix for protein {}...".format(p_name))
+                A = pcn_final.read_adj_mat(adj_filespath, p_name)
+            
+            G = nx.from_numpy_matrix(A)  
+            centralities_choice = str(input("Select one, a list (splitted by ','), or 'all' centrality measures from {}: ".format(str(supported_centralities_measures)))).casefold()
+                        
+            if centralities_choice == "all":
+                centralities_choice = supported_centralities_measures
+            elif(centralities_choice.split(',')):
+                centralities_choice =  [str(centrality_choice) for centrality_choice in centralities_choice.replace(" ","").split(",")]
+            else:
+                raise Exception("{} not supported".format(centralities_choice))
+                                                 
+            for centrality_choice in centralities_choice:
+            
+                print("Computing {} centrality measure on {} PCN".format(centrality_choice, p_name))
+                if(centrality_choice in supported_centralities_measures):
+                            
+                    method_to_call = getattr(pcn_final, centrality_choice)
+                                
+                    centrality_measures = method_to_call(G, p_name, residue_names, 10)
+                    pcn_pymol_scripts.pymol_plot_centralities(centrality_measures, protein_path, output_path, centrality_choice)
+                            
+                else:
+                    print("{} not supported".format(centrality_choice))
+        ###END NEW
+        
     print('Please select the analysis approach: SPECTRAL|EMBEDDINGS|COMMUNITY'+'\n')
     print('Spectral will apply spectral clustering on PCN'+'\n')
     print('Embedding will apply embedding followed by clustering'+'\n')
@@ -200,7 +248,7 @@ while (end==False):
     if (algorithms_choice_numeric != "0"):
         if (isinstance(algorithms_choice_numeric, str)):
             if(algorithms_choice_numeric.split(',')):
-                algorithms_choice_numeric =  [str(algorithm_choice_numeric) for algorithm_choice_numeric in algorithms_choice_numeric.split(',') if(algorithm_choice_numeric != "0")]
+                algorithms_choice_numeric =  [str(algorithm_choice_numeric) for algorithm_choice_numeric in algorithms_choice_numeric.replace(" ","").split(",") if(algorithm_choice_numeric != "0")]
         
         for algorithm_choice_numeric in algorithms_choice_numeric :
             algorithms_choice.append(dict_supported_algorithms_type_selected[algorithm_choice_numeric])            
@@ -228,7 +276,7 @@ while (end==False):
                 n_of_best_ks = int(input("Enter the number of best_ks to try: "))              
                 
             elif(k_choice.split(',')):
-                ks =  [int(item) for item in k_choice.split(',')]
+                ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
                           
             else:
                 raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
@@ -241,12 +289,12 @@ while (end==False):
             if (k_initial_choice == 0):
                 k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
                 if(k_choice.split(',')):
-                    ks =  [int(item) for item in k_choice.split(',')]
+                    ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
         
     if (len(algorithms_choice)>0):
               
         for protein in proteins_list:
-      
+            
             p_name = protein[:4]   #p = 6vxx, protein = 6vxx.pdb, adj = 6vxx_adj_mat.txt
             print(("protein {}: COMPUTING NOW").format(p_name))
                   
@@ -256,14 +304,8 @@ while (end==False):
             dict_residue_name = pcn_final.associateResidueName(residues)
             residue_names = np.array(list (dict_residue_name.items()))
                  
-            if(initial_choice == 'pdb'):
-                     
-                print("computing adjacency matrix for protein {}... (This may take time)".format(p_name))
-                A = pcn_final.adjacent_matrix(output_path, residues, p_name, min_, max_)
-      
-            else:     #'adj'           
-                print("reading adjacency matrix for protein {}...".format(p_name))
-                A = pcn_final.read_adj_mat(adj_filespath, p_name)
+            print("reading adjacency matrix for protein {}...".format(p_name))
+            A = pcn_final.read_adj_mat(adj_filespath, p_name)
                       
             if ((type_choice == 'spectral') or (type_choice == 'embeddings')):              
                 
@@ -294,7 +336,7 @@ while (end==False):
                             n_of_best_ks = int(input("Enter the number of best_ks to try: "))
                                                                  
                         elif(k_choice.split(',')):
-                            ks =  [int(item) for item in k_choice.split(',')]
+                            ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
                                
                         else:
                             raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
@@ -318,16 +360,16 @@ while (end==False):
                     print("Selected ks: {}".format(str(ks)))
                     
                     for k in ks:   
-                    
+                        
                         print("{} with {} with k = {}".format(p_name, algorithm_choice, k))
                         method_to_call = getattr(pcn_final, algorithm_choice)
                         if type_choice == 'embeddings':
-                            labels = method_to_call(A, k, d=d, beta=beta)
+                            labels = method_to_call(A, n_clusters=k, d=d, beta=beta)
                         elif type_choice == 'spectral':
-                            labels = method_to_call(A, k)
+                            labels = method_to_call(A, n_clusters=k)
                             d=None
                             beta=None
-
+                            
                         pcn_final.save_labels(output_path, labels, residue_names, p_name, algorithm_choice, d, beta)
                         
                         #pymol 
@@ -345,7 +387,7 @@ while (end==False):
                         if (k_initial_choice != 0):
                             k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
                             if(k_choice.split(',')):
-                                ks =  [int(item) for item in k_choice.split(',')]
+                                ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
                         
                         for k in ks:
                             labels = method_to_call(G, k)
@@ -358,7 +400,18 @@ while (end==False):
                         n_coms = int( max(labels) + 1)
                         pcn_final.save_labels(output_path, labels, residue_names, p_name,  method=algorithm_choice)
                         pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Communities", algorithm_choice, n_coms)
-                          
+                '''
+                plot_zp = int(input("Press 0 if you want to compute the z-score-Partecipation Coef plot: "))
+                if (plot_zp == 0):
+                    G = nx.from_numpy_matrix(A)  
+                    pcn_final.plot_z_p(G, labels)
+                    #plot part coef pymol
+                    
+                plot_heatmap = int(input("Press 0 if you want to compute the clustering heatmap: "))
+                if (plot_heatmap == 0):
+                    color_map_clustering(labels)
+                '''                        
+                    
     print('Computation Completed.')
     choice=int(input('Please select 0 to make another analsys, otherwise select another numeric key to end the program: '))
     if (choice!=0):

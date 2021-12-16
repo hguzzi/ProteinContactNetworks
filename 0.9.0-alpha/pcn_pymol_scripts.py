@@ -35,7 +35,6 @@ cmd.extend('get_colors',get_colors)
 cmd.auto_arg[0]['get_colors']=[lambda: cmd.Shortcut(['""','all']), 'selection=', ',']
 cmd.auto_arg[1]['get_colors']=[lambda: cmd.Shortcut(['0']), 'quiet=', '']
 
-
 def pymol_plot(protein_path, output_path, algorithm_type, algorithm_name, k):
     
     cmd.do("delete {}".format("all"))
@@ -117,3 +116,34 @@ def pymol_plot_embeddings(protein_path, output_path, algorithm_type, algorithm_n
         cmd.do("save {}{}{}Sessions{}{}_{}_d{}_k{}_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name, d, k))
     
     cmd.do("delete {}".format(protein))
+    
+def pymol_plot_centralities(centralities, protein_path, output_path, algorithm_name):
+    
+    cmd.do("delete {}".format("all"))
+    cmd.do("load {}".format(protein_path))
+    cmd.do("set specular, off")
+    protein = os.path.basename(protein_path)
+    protein_name = os.path.splitext(protein)[0]
+    
+    colors = get_colors()
+    
+    cmd.do("remove hetatm")
+    
+    for (residue, cent) in (centralities.items()):
+        residue_n, residue_chain = residue.split()
+        residue_name = residue_n[:3]
+        residue_num = residue_n[3:]
+        line="alter (resi "+ str(residue_num) + " and chain "+ residue_chain + "), b = "+ str(cent)
+        cmd.do(line)
+        
+    cmd.do("spectrum b, rainbow")
+    cmd.do("ramp_new colorbar, none, [{}, {}], rainbow".format(min(centralities.values()), max(centralities.values())))
+    
+    if (not os.path.exists("{}Centralities{}{}{}Png".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path))):
+        os.makedirs("{}Centralities{}{}{}Png".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path))
+    if (not os.path.exists("{}Centralities{}{}{}Sessions".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path))):
+        os.makedirs("{}Centralities{}{}{}Sessions".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path))
+        
+    cmd.do("capture")
+    cmd.do("save {}Centralities{}{}{}Png{}{}_{}.png".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name))          
+    cmd.do("save {}Centralities{}{}{}Sessions{}{}_{}_session.pse".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name))

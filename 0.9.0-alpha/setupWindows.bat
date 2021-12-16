@@ -10,6 +10,7 @@ call python create_config_file.py
 echo "Installing libraries"
 call conda activate PCN
 call pip install numpy
+call pip install regex
 call pip install scipy
 call pip install fuzzy-c-means
 call pip install git+https://github.com/palash1992/GEM.git

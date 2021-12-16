@@ -16,6 +16,7 @@ then
 	
 	echo "Installing libraries"
 	pip install scipy
+	pip install regex
 	pip install numpy
 	pip install fuzzy-c-means
 	pip install git+https://github.com/palash1992/GEM.git
