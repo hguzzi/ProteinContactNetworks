@@ -89,23 +89,40 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None):
                 output_path = os.path.abspath(os.path.join(adj_path, os.pardir))+add_slash_to_path
                 A = adjacent_matrix(output_path, residues, p_name, min_, max_)
             
-            all_adj_file_exists = True
-                   
+            all_adj_file_exists = True                   
     
-def readPDBFile(pbdFilePath):
+def readPDBFile(pdbFilePath, chain = None):
+
     atoms = []
-    with open(pbdFilePath) as pdbfile:
+    with open(pdbFilePath) as pdbfile:
         for line in pdbfile:
             if line[:4] == 'ATOM':
               # Split the line
                 splitted_line = [line[:6], line[6:11], line[12:16], line[17:20], line[21], line[22:26], line[30:38], line[38:46], line[46:54], line[56:61], line[62:66]]
-                atoms.append(splitted_line)
-                
+                if chain is None:
+                    atoms.append(splitted_line)
+                else:
+                    if(line[21] == chain.upper()):
+                        atoms.append(splitted_line)
                 # To format again the pdb file with the fields extracted
                 #print("%-6s%5s %4s %3s %s %4s    %8s%8s%8s   %3s%3s\n"%tuple(splitted_line))
-    return np.array(atoms)
+    return np.array(atoms)    
 
-def getResidueDistance(atoms):
+def getAllChainsFromPDB(pdbFilePath):
+
+    chains = []
+    with open(pdbFilePath) as pdbfile:
+        for line in pdbfile:
+            if line[:4] == 'ATOM':
+              # Split the line
+                splitted_line = [line[:6], line[6:11], line[12:16], line[17:20], line[21], line[22:26], line[30:38], line[38:46], line[46:54], line[56:61], line[62:66]]
+                if(line[21] not in chains):
+                    chains.append(line[21])
+                # To format again the pdb file with the fields extracted
+                #print("%-6s%5s %4s %3s %s %4s    %8s%8s%8s   %3s%3s\n"%tuple(splitted_line))
+    return np.array(chains)
+    
+def getResidueDistance(atoms, chain = None):
   
     residues = []
     residues_list = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE', 'LYS', 
@@ -115,10 +132,9 @@ def getResidueDistance(atoms):
     dropped = []
 
     last_residue_num = 0
-    last_chain = ''
 
     for i, atom in enumerate(atoms):
-
+        
         residue_name = atom[3]
         residue_chain = atom[4]
         residue_num = int (atom[5])
@@ -126,12 +142,17 @@ def getResidueDistance(atoms):
         if residue_name in residues_list:   
 
             if (residue_num != last_residue_num):
-
-                if (atom[2]==' C  '):
-                    cord_C = atom[6:9] 
-                    residues.append([residue_name + str (residue_num) + " " + residue_chain, cord_C]) 
-                    last_residue_num = residue_num   
-            
+                
+                if (atom[2].replace(" ","")=="CA"):#'C'or 'CA'
+                    if chain is None:
+                        cord_C = atom[6:9] 
+                        residues.append([residue_name + str (residue_num) + " " + residue_chain, cord_C]) 
+                        last_residue_num = residue_num   
+                    else: 
+                        if residue_chain == chain:
+                            cord_C = atom[6:9] 
+                            residues.append([residue_name + str (residue_num) + " " + residue_chain, cord_C]) 
+                            last_residue_num = residue_num  
         else:
           dropped.append(residue_name)
 
@@ -144,26 +165,37 @@ def associateResidueName(residues):
         dict_residue_name[str (i)] = residues[i, 0]
     return dict_residue_name
  
-def getResiduesSequence(pbdFilePath):
+def getResiduesSequence(pbdFilePath, chain = None):
   
     seq_res = []
     residues_list = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE', 'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER', 'THR', 'VAL', 'TRP', 'TYR']
-  
+    
     with open(pbdFilePath) as pdbfile:
         for line in pdbfile:
             if line[:6]=='SEQRES':
-                splitted_line = [line[19:22], line[23:26], line[27:30], line[31:34], line[35:38],
-                                line[39:42], line[43:46], line[47:50], line[51:54], line[55:58],
-                                line[59:62], line[63:66], line[67:70]]
-                for residue in splitted_line:
-                    if residue in residues_list:
-                        seq_res.append(residue)
+                if chain is None:
+                    splitted_line = [line[19:22], line[23:26], line[27:30], line[31:34], line[35:38],
+                                    line[39:42], line[43:46], line[47:50], line[51:54], line[55:58],
+                                    line[59:62], line[63:66], line[67:70]]
+                    for residue in splitted_line:
+                        if residue in residues_list:
+                            seq_res.append(residue)
+                else: 
+                    if chain == line[12]:
+                        if chain is None:
+                            splitted_line = [line[19:22], line[23:26], line[27:30], line[31:34], line[35:38],
+                                            line[39:42], line[43:46], line[47:50], line[51:54], line[55:58],
+                                            line[59:62], line[63:66], line[67:70]]
+                            for residue in splitted_line:
+                                if residue in residues_list:
+                                    seq_res.append(residue)
+                         
     return np.array(seq_res)
 
-def read_adj_mat(adj_filepath, p):
+def read_adj_mat(adj_filepath, p, min_, max_):
 
-    if (os.path.isfile("{}{}_adj_mat.txt".format(adj_filepath, p))):
-        adj = np.loadtxt("{}{}_adj_mat.txt".format(adj_filepath, p))
+    if (os.path.isfile("{}{}_adj_mat_{}_{}.txt".format(adj_filepath, p, min_, max_))):
+        adj = np.loadtxt("{}{}_adj_mat_{}_{}.txt".format(adj_filepath, p, min_, max_))
         return adj
     else: 
         raise Exception("Adj matrix for protein {} doesn't exists.".format(p))
@@ -197,12 +229,13 @@ def adjacent_matrix(output_path, residues, p, min_=4, max_=8):
         
     if not os.path.exists("{}Edgelists".format(output_path)):
         os.makedirs("{}Edgelists".format(output_path))
-    np.savetxt("{}Edgelists{}{}_edgelist.txt".format(output_path, add_slash_to_path, p), np.array(edge_list), fmt='%.2f')
+        
+    np.savetxt("{}Edgelists{}{}_edgelist_{}_{}.csv".format(output_path, add_slash_to_path, p, min_, max_), np.array(edge_list), fmt='%.2f')
     print("saved edge list")
         
     if not os.path.exists("{}Adj".format(output_path)):
         os.makedirs("{}Adj".format(output_path))
-    np.savetxt("{}Adj{}{}_adj_mat.txt".format(output_path, add_slash_to_path, p), adj, fmt='%.2f')
+    np.savetxt("{}Adj{}{}_adj_mat_{}_{}.txt".format(output_path, add_slash_to_path, p, min_, max_), adj, fmt='%.2f')
     print("saved adj matrix")
     
     return adj
@@ -327,11 +360,13 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
 
 #COMMUNITY EXTRACTION
 
-def extract_labels_from_coms(coms, algorithm_name):
+def extract_labels_from_coms(num_nodes,coms, algorithm_name):
   
-    n_coms = len(coms) #numero di comunità 
-    print("number of {} communities: {}".format(algorithm_name, n_coms))
-    labels = np.zeros((G.number_of_nodes(), 1))
+    if (algorithm_name != "Asyn FluidC"):
+        n_coms = len(coms) #numero di comunità 
+        print("number of {} communities: {}".format(algorithm_name, n_coms))
+    
+    labels = np.zeros((num_nodes, 1))
     dict_node_algorithm_com = dict ()
 
     for label, com in enumerate(coms):
@@ -344,12 +379,12 @@ def extract_labels_from_coms(coms, algorithm_name):
   
     return labels
 
-
 def louvain(G):
 
     louvain = algorithms.louvain(G)
     coms = louvain.communities
-    labels = extract_labels_from_coms(coms, "Louvain")
+    num_nodes = G.number_of_nodes()
+    labels = extract_labels_from_coms(num_nodes, coms, "Louvain")
 
     return labels
 
@@ -357,7 +392,8 @@ def leiden(G):
 
     leiden = algorithms.leiden(G)
     coms = leiden.communities
-    labels = extract_labels_from_coms(coms, "Leiden")
+    num_nodes = G.number_of_nodes()
+    labels = extract_labels_from_coms(num_nodes, coms, "Leiden")
 
     return labels  
  
@@ -365,35 +401,41 @@ def walktrap(G):
 
     walktrap = algorithms.walktrap(G)
     coms = walktrap.communities
-    labels = extract_labels_from_coms(coms, "Walktrap")
+    num_nodes = G.number_of_nodes()
+    labels = extract_labels_from_coms(num_nodes, coms, "Walktrap")
       
     return labels
   
 def greedy_modularity(G):
 
     coms = greedy_modularity_communities(G)
-    labels = extract_labels_from_coms(coms, "Greedy Modularity")
+    num_nodes = G.number_of_nodes()
+    labels = extract_labels_from_coms(num_nodes, coms, "Greedy Modularity")
 
     return labels
 
 def infomap(G):
     
     coms = algorithms.infomap(G).communities
-    labels = extract_labels_from_coms(coms, "Infomap")
+    num_nodes = G.number_of_nodes()
+    labels = extract_labels_from_coms(num_nodes, coms, "Infomap")
 
     return labels
 
 def asyn_fluidc(G, k):
   
     coms = asyn_fluidc_(G, k)
-    labels = extract_labels_from_coms(coms, "Asyn FluidC")
+    num_nodes = G.number_of_nodes()
+    print("number of Asyn FluidC communities: {}".format(k))
+    labels = extract_labels_from_coms(num_nodes, coms, "Asyn FluidC")
   
     return labels
   
 def spinglass(G):
 
     coms = algorithms.spinglass(G).communities
-    labels = extract_labels_from_coms(coms, "Spin Glass")
+    num_nodes = G.number_of_nodes()
+    labels = extract_labels_from_coms(num_nodes, coms, "Spin Glass")
   
     return labels
   
@@ -402,7 +444,7 @@ def spinglass(G):
 def degree_matrix(A):
   
     n = A.shape[0]
-    diag = np.zeros((n, n)) # basically dimensions of your graph
+    diag = np.zeros((n, n)) 
     rows, cols = A.nonzero()
     
     for row, col in zip(rows, cols):
@@ -698,9 +740,7 @@ def ssc_shimalik_laplacianeigenmaps(A, n_clusters = None, embedding="LaplacianEi
     labels = ssc_shimalik(A, n_clusters, embedding, d, beta)
     return labels
     
-    
 #NEW
-
 
 def betweenness(G, p, residue_names, n):
 

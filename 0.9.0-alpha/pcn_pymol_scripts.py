@@ -43,14 +43,19 @@ def pymol_plot(protein_path, output_path, algorithm_type, algorithm_name, k):
     protein = os.path.basename(protein_path)
     protein_name = os.path.splitext(protein)[0]
     
-    filename = output_path+"{}{}{}{}{}_{}_{}_k{}.txt".format(algorithm_name, add_slash_to_path, algorithm_type, add_slash_to_path, protein_name, algorithm_type, algorithm_name, k)
+    if (algorithm_type == "Communities"):
+        ncoms_or_k = "ncoms"
+    else:
+        ncoms_or_k = "k"
+    
+    filename = output_path+"{}{}{}{}{}_{}_{}_{}{}.txt".format(algorithm_name, add_slash_to_path, algorithm_type, add_slash_to_path, protein_name, algorithm_type, algorithm_name, ncoms_or_k, k)
     f = open(filename, "r")
     data = f.read()
     dict_node_comms = ast.literal_eval(data)
     f.close()
 
     colors = get_colors()
-
+    
     for (residue, label) in (dict_node_comms.items()):
         residue_n, residue_chain = residue.split()
         residue_name = residue_n[:3]
@@ -67,8 +72,53 @@ def pymol_plot(protein_path, output_path, algorithm_type, algorithm_name, k):
         os.makedirs("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))
         
     cmd.do("capture")
-    cmd.do("save {}{}{}Png{}{}_{}_{}_k{}.png".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, k))          
-    cmd.do("save {}{}{}Sessions{}{}_{}_{}_k{}_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, k))
+    cmd.do("save {}{}{}Png{}{}_{}_{}_{}{}.png".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, ncoms_or_k, k))          
+    cmd.do("save {}{}{}Sessions{}{}_{}_{}_{}{}_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, ncoms_or_k, k))
+    cmd.do("delete {}".format(protein))
+
+def pymol_plot_chain(protein_path, output_path, algorithm_type, algorithm_name, k, chains_to_delete):
+    
+    cmd.do("delete {}".format("all"))
+    cmd.do("load {}".format(protein_path))
+    
+    protein = os.path.basename(protein_path)
+    protein_name = os.path.splitext(protein)[0]
+    
+    if (algorithm_type == "Communities"):
+        ncoms_or_k = "ncoms"
+    else:
+        ncoms_or_k = "k"
+    
+    filename = output_path+"{}{}{}{}{}_{}_{}_{}{}.txt".format(algorithm_name, add_slash_to_path, algorithm_type, add_slash_to_path, protein_name, algorithm_type, algorithm_name, ncoms_or_k, k)
+    f = open(filename, "r")
+    data = f.read()
+    dict_node_comms = ast.literal_eval(data)
+    f.close()
+
+    colors = get_colors()
+    
+    for (residue, label) in (dict_node_comms.items()):
+        residue_n, residue_chain = residue.split()
+        residue_name = residue_n[:3]
+        residue_num = residue_n[3:]
+        for i in range(k): 
+            if(label==i):
+                print(residue + " " + colors[i])
+                line="color "+colors[i]+", (resi "+ residue_num + " and chain "+ residue_chain + ")"
+                cmd.do(line)
+    
+    if (not os.path.exists("{}{}{}Png".format(output_path, algorithm_name, add_slash_to_path))):
+        os.makedirs("{}{}{}Png".format(output_path, algorithm_name, add_slash_to_path))
+    if (not os.path.exists("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))):
+        os.makedirs("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))
+    
+    cmd.do("remove resn NAG")
+    for chain in chains_to_delete:
+        cmd.do("remove chain {}".format(chain))
+    
+    cmd.do("capture")
+    cmd.do("save {}{}{}Png{}{}_{}_{}_{}{}_chain.png".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, ncoms_or_k, k))          
+    cmd.do("save {}{}{}Sessions{}{}_{}_{}_{}{}_chain_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, ncoms_or_k, k))
     cmd.do("delete {}".format(protein))
     
 def pymol_plot_embeddings(protein_path, output_path, algorithm_type, algorithm_name, k, d, beta=None):

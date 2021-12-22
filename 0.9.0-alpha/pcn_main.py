@@ -136,7 +136,10 @@ while (end==False):
                     
     else:
          raise Exception("'{}' is not a directory.".format(proteins_path))
-      
+    
+    min_ = float(input("Entering non covalent bonds threshold distance for PCN costruction: ") or 4.0)    
+    max_ = float(input("Entering only significant bonds threshold distance for PCN costruction : ") or 8.0)
+    
     if(initial_choice == 'adj'):
         
         if(use_config_choice==0):
@@ -148,64 +151,18 @@ while (end==False):
             adj_filespath = adj_filespath+add_slash_to_path
             
         if (is_dir_adj and is_dir_prot):
-            adj_list = [protein.casefold()+"_adj_mat.txt" for protein in proteins_list]
+            adj_list = [protein.casefold()+"_adj_mat_{}_{}.txt".format(min_, max_) for protein in proteins_list]
             pcn_final.checkIfFilesExists(adj_list, "adj", proteins_path, adj_filespath) #add_slash_to_path is path separator 
         else:
             raise Exception("'{}' is not a directory.".format(adj_filespath))
             
     elif (initial_choice == 'pdb'):
-        min_ = int(input("Entering non covalent bonds threshold distance for PCN costruction: ") or 4)    
-        max_ = int(input("Entering only significant bonds threshold distance for PCN costruction : ") or 8)
-        
+        pass
     else: 
         raise Exception("'initial_choice' input must be 'pdb' or 'adj' but '{}' given.".format(initial_choice))
-    ###NEW
+
     centrality_initial_choice =  int(input("Press 0 if you want to compute a node centrality measure: "))
-    if (centrality_initial_choice  == 0):
-        for protein in proteins_list:
-            
-            p_name = protein[:4]
-            print(("protein {}: CENTRALITY MEASURES COMPUTING NOW").format(p_name))
-                  
-            protein_path = proteins_path+p_name+".pdb"
-            atoms = pcn_final.readPDBFile(protein_path)
-            residues = pcn_final.getResidueDistance(atoms)
-            dict_residue_name = pcn_final.associateResidueName(residues)
-            residue_names = np.array(list (dict_residue_name.items()))
-                 
-            if(initial_choice == 'pdb'):
-                     
-                print("computing adjacency matrix for protein {}... (This may take time)".format(p_name))
-                A = pcn_final.adjacent_matrix(output_path, residues, p_name, min_, max_)
-      
-            else:     #'adj'           
-                print("reading adjacency matrix for protein {}...".format(p_name))
-                A = pcn_final.read_adj_mat(adj_filespath, p_name)
-            
-            G = nx.from_numpy_matrix(A)  
-            centralities_choice = str(input("Select one, a list (splitted by ','), or 'all' centrality measures from {}: ".format(str(supported_centralities_measures)))).casefold()
-                        
-            if centralities_choice == "all":
-                centralities_choice = supported_centralities_measures
-            elif(centralities_choice.split(',')):
-                centralities_choice =  [str(centrality_choice) for centrality_choice in centralities_choice.replace(" ","").split(",")]
-            else:
-                raise Exception("{} not supported".format(centralities_choice))
-                                                 
-            for centrality_choice in centralities_choice:
-            
-                print("Computing {} centrality measure on {} PCN".format(centrality_choice, p_name))
-                if(centrality_choice in supported_centralities_measures):
-                            
-                    method_to_call = getattr(pcn_final, centrality_choice)
-                                
-                    centrality_measures = method_to_call(G, p_name, residue_names, 10)
-                    pcn_pymol_scripts.pymol_plot_centralities(centrality_measures, protein_path, output_path, centrality_choice)
-                            
-                else:
-                    print("{} not supported".format(centrality_choice))
-        ###END NEW
-        
+    
     print('Please select the analysis approach: SPECTRAL|EMBEDDINGS|COMMUNITY'+'\n')
     print('Spectral will apply spectral clustering on PCN'+'\n')
     print('Embedding will apply embedding followed by clustering'+'\n')
@@ -290,22 +247,53 @@ while (end==False):
                 k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
                 if(k_choice.split(',')):
                     ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
-        
-    if (len(algorithms_choice)>0):
-              
-        for protein in proteins_list:
             
-            p_name = protein[:4]   #p = 6vxx, protein = 6vxx.pdb, adj = 6vxx_adj_mat.txt
-            print(("protein {}: COMPUTING NOW").format(p_name))
-                  
-            protein_path = proteins_path+p_name+".pdb"
-            atoms = pcn_final.readPDBFile(protein_path)
-            residues = pcn_final.getResidueDistance(atoms)
-            dict_residue_name = pcn_final.associateResidueName(residues)
-            residue_names = np.array(list (dict_residue_name.items()))
-                 
+    for protein in proteins_list:
+        
+        p_name = protein[:4]
+        protein_path = proteins_path+p_name+".pdb"
+        atoms = pcn_final.readPDBFile(protein_path)
+        residues = pcn_final.getResidueDistance(atoms)
+        dict_residue_name = pcn_final.associateResidueName(residues)
+        residue_names = np.array(list (dict_residue_name.items()))
+        
+        if(initial_choice == 'pdb'):
+                     
+            print("computing adjacency matrix for protein {}... (This may take time)".format(p_name))
+            A = pcn_final.adjacent_matrix(output_path, residues, p_name, min_, max_)
+      
+        else:     #'adj'           
             print("reading adjacency matrix for protein {}...".format(p_name))
-            A = pcn_final.read_adj_mat(adj_filespath, p_name)
+            A = pcn_final.read_adj_mat(adj_filespath, p_name, min_, max_)
+            
+        if (centrality_initial_choice  == 0):
+            
+            print(("protein {}: CENTRALITY MEASURES COMPUTING NOW").format(p_name))
+                              
+            G = nx.from_numpy_matrix(A)  
+            centralities_choice = str(input("Select one, a list (splitted by ','), or 'all' centrality measures from {}: ".format(str(supported_centralities_measures)))).casefold()
+                        
+            if centralities_choice == "all":
+                centralities_choice = supported_centralities_measures
+            elif(centralities_choice.split(',')):
+                centralities_choice =  [str(centrality_choice) for centrality_choice in centralities_choice.replace(" ","").split(",")]
+            else:
+                raise Exception("{} not supported".format(centralities_choice))
+                                                 
+            for centrality_choice in centralities_choice:
+            
+                print("Computing {} centrality measure on {} PCN".format(centrality_choice, p_name))
+                if(centrality_choice in supported_centralities_measures):
+                            
+                    method_to_call = getattr(pcn_final, centrality_choice)
+                                
+                    centrality_measures = method_to_call(G, p_name, residue_names, 10)
+                    pcn_pymol_scripts.pymol_plot_centralities(centrality_measures, protein_path, output_path, centrality_choice)
+                            
+                else:
+                    print("{} not supported".format(centrality_choice))
+        
+        if (len(algorithms_choice)>0):
                       
             if ((type_choice == 'spectral') or (type_choice == 'embeddings')):              
                 
