@@ -16,7 +16,7 @@ from scipy.linalg import eigh
 import warnings
 import os
 import base64 
-import matplotlib.pyplot as plt# NEW
+#import matplotlib.pyplot as plt# NEW
 #DELETED PRODY LIBRARY
 
 from networkx.algorithms.centrality import degree_centrality, eigenvector_centrality, closeness_centrality, betweenness_centrality
@@ -294,9 +294,7 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
         print(len(temp))
         residue_names_cluster[label] = temp
         print(f"{name} {label}: ", residue_names_cluster[label]) 
-    
-    #TO DELETE(maybe)
-    
+      
     summary_output_path = "{}{}{}{}".format(output_path, method, add_slash_to_path, "Summary")
     
     if (not os.path.exists(summary_output_path)):
@@ -308,10 +306,9 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
     for label in range(k):
     
         f.write("{} {}: {} ".format(name, label, residue_names_cluster[label]))
-        f.write(" ")
+        f.write("\r\n")
     
     f.close()
-    #END TO DELETE 
             
     dict_node_cluster_1 = dict ()
     
@@ -363,7 +360,7 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
 def extract_labels_from_coms(num_nodes,coms, algorithm_name):
   
     if (algorithm_name != "Asyn FluidC"):
-        n_coms = len(coms) #numero di comunità 
+        n_coms = len(coms) 
         print("number of {} communities: {}".format(algorithm_name, n_coms))
     
     labels = np.zeros((num_nodes, 1))
@@ -740,16 +737,15 @@ def ssc_shimalik_laplacianeigenmaps(A, n_clusters = None, embedding="LaplacianEi
     labels = ssc_shimalik(A, n_clusters, embedding, d, beta)
     return labels
     
-#NEW
+#CENTRALITY MEASURES
 
-def betweenness(G, p, residue_names, n):
+def betweenness(G, p, residue_names_1, n):
 
     bc = betweenness_centrality(G)
     bc = {int (float (k)):v for k,v in bc.items()}
-    residue_names_1 = np.array(residue_names[:, 1], dtype = str)
     dict_node_centrality = dict ()
     
-    for i, cent in enumerate(bc.values()):
+    for i, cent in bc.items():
     
         dict_node_centrality[residue_names_1[i]] = cent    
         
@@ -760,14 +756,13 @@ def betweenness(G, p, residue_names, n):
     
     return dict_node_centrality
 
-def eigenvector(G, p, residue_names, n):
+def eigenvector(G, p, residue_names_1, n):
 
     ec = eigenvector_centrality(G, max_iter=10000)
     ec = {int (float (k)):v for k,v in ec.items()}
-    residue_names_1 = np.array(residue_names[:, 1], dtype = str)
     dict_node_centrality = dict ()
     
-    for i, cent in enumerate(ec.values()):
+    for i, cent in ec.items():
     
         dict_node_centrality[residue_names_1[i]] = cent      
         
@@ -778,14 +773,13 @@ def eigenvector(G, p, residue_names, n):
         
     return dict_node_centrality
 
-def degree_c(G, p, residue_names, n):
+def degree_c(G, p, residue_names_1, n):
 
     dc = degree_centrality(G)
     dc = {int (float (k)):v for k,v in dc.items()}
-    residue_names_1 = np.array(residue_names[:, 1], dtype = str)
     dict_node_centrality = dict ()
     
-    for i, cent in enumerate(dc.values()):
+    for i, cent in dc.items():
     
         dict_node_centrality[residue_names_1[i]] = cent     
         
@@ -796,14 +790,13 @@ def degree_c(G, p, residue_names, n):
     
     return dict_node_centrality
 
-def closeness(G, p, residue_names, n):
+def closeness(G, p, residue_names_1, n):
 
     cc = closeness_centrality(G)
     cc = {int (float (k)):v for k,v in cc.items()}
-    residue_names_1 = np.array(residue_names[:, 1], dtype = str)
     dict_node_centrality = dict ()
     
-    for i, cent in enumerate(cc.values()):
+    for i, cent in cc.items():
     
         dict_node_centrality[residue_names_1[i]] = cent  
         
@@ -813,8 +806,9 @@ def closeness(G, p, residue_names, n):
         print(d)
         
     return dict_node_centrality
-    
-def partecipation_coefs(G, clusters):
+
+#p score and z score coefs
+def partecipation_coefs(G, clusters, residue_names_1):
   
     A = nx.to_numpy_matrix(G)
     n = A.shape[0]
@@ -832,14 +826,19 @@ def partecipation_coefs(G, clusters):
 
         k_s[i] = k_si
         P[i] = 1 - (k_s[i]/k_i)**2
+        
+    P_update_keys = dict() 
+    for i, p in P.items():
+        
+        P_update_keys[residue_names_1[i]] = p  
+        
+    return P_update_keys
 
-    return P
-
-def z_score(G, clusters):
+def z_score(G, clusters, residue_names_1):
 
     A = nx.to_numpy_matrix(G)
     n = A.shape[0]
-    z = dict()
+    z_s = dict()
     k_s = np.zeros((n))
 
     for i in range(n):
@@ -848,7 +847,7 @@ def z_score(G, clusters):
         
         for j in range(n):
             if (i!=j):
-                if ((clusters[i] == clusters[j]) and (A[i,j]!=0)):#se il nodo i e il nodo j sono dello stesso cluster e c'è un arco che li connette
+                if ((clusters[i] == clusters[j]) and (A[i,j]!=0)):
                     k_si += A[i,j]
 
         k_s[i] = k_si
@@ -857,10 +856,15 @@ def z_score(G, clusters):
         sigma_k_si = np.std(k_s)
         for i in range(n): 
             k_i = np.sum(A[i,:]) 
-            z[i] = (k_i - mean_k_si) / sigma_k_si
+            z_s[i] = (k_i - mean_k_si) / sigma_k_si
+            
+    z_s_update_keys = dict()
+    for i, z in z_s.items():
+        z_s_update_keys[residue_names_1[i]] = z  
   
     return z
 
+"""
 def plot_z_p(G, clusters):
     
     part_coefs = partecipation_coefs(G, clusters)
@@ -909,3 +913,4 @@ def color_map_clustering(clusters):
     plt.matshow(cluster_map, vmin=0, vmax=max(clusters)+1, cmap='cividis', fignum=1)
     plt.legend(labels=labels_unique)
     plt.show()
+"""

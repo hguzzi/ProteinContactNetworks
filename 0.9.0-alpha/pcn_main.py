@@ -7,6 +7,17 @@ import pcn_pymol_scripts
 from sys import platform
 import configparser
 
+
+print("Protein Contact Network Miner 0.0.9b ")
+
+print("Software Available under CC-BY Licence ")
+
+print("Free for Academic Usage")
+
+print(" ")
+
+input('Press Enter to Continue')
+
 supported_algorithms_clustering = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik"]
 supported_algorithms_embeddings = ["unnorm_ssc_hope", "norm_ssc_hope", "unnorm_hsc_hope", "norm_hsc_hope", "hsc_shimalik_hope", "ssc_shimalik_hope",
                                    "unnorm_ssc_laplacianeigenmaps", "norm_ssc_laplacianeigenmaps", "unnorm_hsc_laplacianeigenmaps", "norm_hsc_laplacianeigenmaps",
@@ -87,16 +98,6 @@ else:#config file not found, create it
         config.write(configfile)
         
     print('config file successfully created')
-        
-print("Protein Contact Network Analyzer 0.0.9b ")
-
-print("Software Available under CC-BY Licence ")
-
-print("Free for Academic Usage")
-
-print(" ")
-
-print('Press Enter to Continue')
 
 end=False 
 
@@ -167,6 +168,7 @@ while (end==False):
     print('Spectral will apply spectral clustering on PCN'+'\n')
     print('Embedding will apply embedding followed by clustering'+'\n')
     print('Community will apply community discovery'+'\n')
+    
     type_choice = str( input("Choice between 'spectral' (Spectral Clustering), 'embeddings' (Embeddings+Clustering) and 'community' (Community Extraction): ")).casefold()
     algorithms_choice = []
     if (type_choice == 'spectral'):
@@ -223,30 +225,33 @@ while (end==False):
         if (len(not_supported_algorithms)>0):
             print("Algorithms {} not supported yet.".format(str(not_supported_algorithms)))
            
-    if ((type_choice == 'spectral') or (type_choice == 'embeddings')):
-        
-        k_initial_choice = int(input("Enter 0 if you want to use the same number of clusters k for Spectral Clustering to all the proteins: "))
-        if (k_initial_choice == 0):
-            k_choice = str(input("Entering k for clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
+        if(len(proteins_list)>1):
+            if ((type_choice == 'spectral') or (type_choice == 'embeddings')):
+           
+                k_initial_choice = int(input("Enter 0 if you want to use the same number of clusters k for Spectral Clustering to all the proteins: "))
+                if (k_initial_choice == 0):
+                    k_choice = str(input("Entering k for clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
+                    
+                    if (k_choice == 'best_k'):
+                        n_of_best_ks = int(input("Enter the number of best_ks to try: "))              
+                        
+                    elif(k_choice.split(',')):
+                        ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
+                                  
+                    else:
+                        raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
             
-            if (k_choice == 'best_k'):
-                n_of_best_ks = int(input("Enter the number of best_ks to try: "))              
+            if (type_choice == 'community'):
                 
-            elif(k_choice.split(',')):
-                ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
-                          
-            else:
-                raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
-        
-    if (type_choice == 'community'):
-        
-        if ('asyn_fluidc' in algorithms_choice):
-        
-            k_initial_choice = int(input("Enter 0 if you want to use the same number of community k for Asyn FluidC to all the proteins: "))
-            if (k_initial_choice == 0):
-                k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
-                if(k_choice.split(',')):
-                    ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
+                if ('asyn_fluidc' in algorithms_choice):
+                
+                    k_initial_choice = int(input("Enter 0 if you want to use the same number of community k for Asyn FluidC to all the proteins: "))
+                    if (k_initial_choice == 0):
+                        k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
+                        if(k_choice.split(',')):
+                            ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
+        else:
+            k_initial_choice = 1
             
     for protein in proteins_list:
         
@@ -272,7 +277,7 @@ while (end==False):
                               
             G = nx.from_numpy_matrix(A)  
             centralities_choice = str(input("Select one, a list (splitted by ','), or 'all' centrality measures from {}: ".format(str(supported_centralities_measures)))).casefold()
-                        
+            residue_names_1 = np.array(residue_names[:, 1], dtype = str)        
             if centralities_choice == "all":
                 centralities_choice = supported_centralities_measures
             elif(centralities_choice.split(',')):
@@ -287,7 +292,8 @@ while (end==False):
                             
                     method_to_call = getattr(pcn_final, centrality_choice)
                                 
-                    centrality_measures = method_to_call(G, p_name, residue_names, 10)
+                    centrality_measures = method_to_call(G, p_name, residue_names_1, 10)
+                    print(centrality_measures)
                     pcn_pymol_scripts.pymol_plot_centralities(centrality_measures, protein_path, output_path, centrality_choice)
                             
                 else:
@@ -314,6 +320,8 @@ while (end==False):
             for algorithm_choice in algorithms_choice:  
                   
                 print(("protein {} with algorithm {}: COMPUTING NOW").format(p_name, algorithm_choice))
+                
+                plot_p = int(input("Press 0 if you want to compute the Partecipation Coef plot: "))
                 if ((type_choice == 'spectral') or (type_choice == 'embeddings')):  
                 
                     if (k_initial_choice != 0):
@@ -366,6 +374,13 @@ while (end==False):
                                      
                         else:#clustering
                             pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Clusters", algorithm_choice, k)
+                            
+                        if (plot_p == 0): 
+                            G = nx.from_numpy_matrix(A) 
+                            residue_names_1 = np.array(residue_names[:, 1], dtype = str)
+                            output_path_p = "{}{}{}{}".format(output_path, add_slash_to_path, algorithm_choice, add_slash_to_path)
+                            p = pcn_final.partecipation_coefs(G, labels, residue_names_1)
+                            pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p)
                                     
                 else:#type_choice = 'community'
                      
@@ -382,24 +397,26 @@ while (end==False):
                             n_coms = int( max(labels) + 1)
                             pcn_final.save_labels(output_path, labels, residue_names, p_name,  method=algorithm_choice)
                             pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Communities", algorithm_choice, n_coms)
+                            
+                            if (plot_p == 0): 
+                                residue_names_1 = np.array(residue_names[:, 1], dtype = str)
+                                p = pcn_final.partecipation_coefs(G, labels, residue_names_1)
+                                output_path_p = "{}{}{}{}".format(output_path, add_slash_to_path, algorithm_choice, add_slash_to_path)
+                                pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p) 
                     
                     else:
                         labels = method_to_call(G)
                         n_coms = int( max(labels) + 1)
                         pcn_final.save_labels(output_path, labels, residue_names, p_name,  method=algorithm_choice)
-                        pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Communities", algorithm_choice, n_coms)
-                '''
-                plot_zp = int(input("Press 0 if you want to compute the z-score-Partecipation Coef plot: "))
-                if (plot_zp == 0):
-                    G = nx.from_numpy_matrix(A)  
-                    pcn_final.plot_z_p(G, labels)
-                    #plot part coef pymol
-                    
-                plot_heatmap = int(input("Press 0 if you want to compute the clustering heatmap: "))
-                if (plot_heatmap == 0):
-                    color_map_clustering(labels)
-                '''                        
-                    
+                        pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Communities", algorithm_choice, n_coms)    
+                        
+                        if (plot_p == 0): 
+                            residue_names_1 = np.array(residue_names[:, 1], dtype = str)
+                            p = pcn_final.partecipation_coefs(G, labels, residue_names_1)
+                            output_path_p = "{}{}{}{}".format(output_path, add_slash_to_path, algorithm_choice, add_slash_to_path)
+                            pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p)
+                        
+                            
     print('Computation Completed.')
     choice=int(input('Please select 0 to make another analsys, otherwise select another numeric key to end the program: '))
     if (choice!=0):

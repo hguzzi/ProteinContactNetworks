@@ -197,3 +197,31 @@ def pymol_plot_centralities(centralities, protein_path, output_path, algorithm_n
     cmd.do("capture")
     cmd.do("save {}Centralities{}{}{}Png{}{}_{}.png".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name))          
     cmd.do("save {}Centralities{}{}{}Sessions{}{}_{}_session.pse".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name))
+
+
+def pymol_plot_part_coefs(part_coefs, protein_path, output_path):
+    
+    cmd.do("delete {}".format("all"))
+    cmd.do("load {}".format(protein_path))
+    cmd.do("set specular, off")
+    protein = os.path.basename(protein_path)
+    protein_name = os.path.splitext(protein)[0]
+    
+    colors = get_colors()
+    
+    cmd.do("remove hetatm")
+    
+    for (residue, p) in (part_coefs.items()):
+        residue_n, residue_chain = residue.split()
+        residue_name = residue_n[:3]
+        residue_num = residue_n[3:]
+        line="alter (resi "+ str(residue_num) + " and chain "+ residue_chain + "), b = "+ str(p)
+        cmd.do(line)
+        
+    cmd.do("spectrum b, rainbow")
+    cmd.do("ramp_new colorbar, none, [{}, {}], rainbow".format(min(part_coefs.values()), max(part_coefs.values())))
+    
+    if (not os.path.exists("{}Part_coefs_Sessions".format(output_path))):
+        os.makedirs("{}Part_coefs_Sessions".format(output_path))
+  
+    cmd.do("save {}Part_coefs_Sessions{}{}_part_coefs_session.pse".format(output_path, add_slash_to_path, protein_name))
