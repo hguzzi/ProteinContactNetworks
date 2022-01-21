@@ -103,7 +103,7 @@ end=False
 
 while (end==False):
     print('As First Step you must choose Format File Input: PDB structures or Preprocessed PCN')
-    initial_choice = str (input("Digit pdb' to use .pdb files or  'adj' to load existing PCN: ")).casefold()
+    initial_choice = str (input("Digit 'pdb' to use .pdb files or  'adj' to load existing PCN: ")).casefold()
     
     if(not os.path.isdir(output_path)):
         os.makedirs(output_path)
@@ -380,7 +380,7 @@ while (end==False):
                             residue_names_1 = np.array(residue_names[:, 1], dtype = str)
                             output_path_p = "{}{}{}{}".format(output_path, add_slash_to_path, algorithm_choice, add_slash_to_path)
                             p = pcn_final.partecipation_coefs(G, labels, residue_names_1)
-                            pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p)
+                            pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, k)
                                     
                 else:#type_choice = 'community'
                      
@@ -402,7 +402,7 @@ while (end==False):
                                 residue_names_1 = np.array(residue_names[:, 1], dtype = str)
                                 p = pcn_final.partecipation_coefs(G, labels, residue_names_1)
                                 output_path_p = "{}{}{}{}".format(output_path, add_slash_to_path, algorithm_choice, add_slash_to_path)
-                                pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p) 
+                                pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, k) 
                     
                     else:
                         labels = method_to_call(G)
@@ -414,7 +414,7 @@ while (end==False):
                             residue_names_1 = np.array(residue_names[:, 1], dtype = str)
                             p = pcn_final.partecipation_coefs(G, labels, residue_names_1)
                             output_path_p = "{}{}{}{}".format(output_path, add_slash_to_path, algorithm_choice, add_slash_to_path)
-                            pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p)
+                            pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, n_coms)
                         
                             
     print('Computation Completed.')
