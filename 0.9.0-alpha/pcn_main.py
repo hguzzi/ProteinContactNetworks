@@ -224,35 +224,43 @@ while (end==False):
                         
         if (len(not_supported_algorithms)>0):
             print("Algorithms {} not supported yet.".format(str(not_supported_algorithms)))
-           
-        if(len(proteins_list)>1):
+        
+        if((len(proteins_list)>1) or (len(algorithms_choice)>1)):
             if ((type_choice == 'spectral') or (type_choice == 'embeddings')):
-           
-                k_initial_choice = int(input("Enter 0 if you want to use the same number of clusters k for Spectral Clustering to all the proteins: "))
-                if (k_initial_choice == 0):
-                    k_choice = str(input("Entering k for clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
-                    
-                    if (k_choice == 'best_k'):
-                        n_of_best_ks = int(input("Enter the number of best_ks to try: "))              
-                        
-                    elif(k_choice.split(',')):
-                        ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
-                                  
-                    else:
-                        raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
+               k_initial_choice = int(input("Enter 0 if you want to use the same number of clusters k for Spectral Clustering to all the proteins: "))
             
             if (type_choice == 'community'):
-                
-                if ('asyn_fluidc' in algorithms_choice):
-                
-                    k_initial_choice = int(input("Enter 0 if you want to use the same number of community k for Asyn FluidC to all the proteins: "))
-                    if (k_initial_choice == 0):
-                        k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
-                        if(k_choice.split(',')):
-                            ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
-        else:
-            k_initial_choice = 1
+                if ('asyn_fluidc' in algorithms_choice):               
+                   k_initial_choice = int(input("Enter 0 if you want to use the same number of community k for Asyn FluidC to all the proteins: "))
+        
+        elif((len(proteins_list)==1) and (len(algorithms_choice)==1)):
+            k_initial_choice = 0
             
+        if ((type_choice == 'spectral') or (type_choice == 'embeddings')):
+           
+            if (k_initial_choice == 0):
+                
+                k_choice = str(input("Entering k for clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
+                    
+                if (k_choice == 'best_k'):
+                    n_of_best_ks = int(input("Enter the number of best_ks to try: "))              
+                      
+                elif(k_choice.split(',')):
+                    ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
+                                  
+                else:
+                    raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
+            
+        if (type_choice == 'community'):
+               
+            if ('asyn_fluidc' in algorithms_choice):
+              
+                k_initial_choice = int(input("Enter 0 if you want to use the same number of community k for Asyn FluidC to all the proteins: "))
+                if (k_initial_choice == 0):
+                    k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
+                    if(k_choice.split(',')):
+                        ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
+   
     for protein in proteins_list:
         
         p_name = protein[:4]
@@ -336,7 +344,7 @@ while (end==False):
                                
                         else:
                             raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
-                            
+                          
                     if(k_choice == 'best_k'):
                         if('shimalik' in algorithm_choice):
                             L = pcn_final.compute_laplacian_matrix(A)
