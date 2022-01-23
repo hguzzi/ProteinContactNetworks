@@ -227,7 +227,7 @@ while (end==False):
         
         if((len(proteins_list)>1) or (len(algorithms_choice)>1)):
             if ((type_choice == 'spectral') or (type_choice == 'embeddings')):
-               k_initial_choice = int(input("Enter 0 if you want to use the same number of clusters k for Spectral Clustering to all the proteins: "))
+               k_initial_choice = int(input("Enter 0 if you want to use the same parameters for {} clustering to all the proteins: ".format(type_choice)))
             
             if (type_choice == 'community'):
                 if ('asyn_fluidc' in algorithms_choice):               
@@ -240,9 +240,16 @@ while (end==False):
            
             if (k_initial_choice == 0):
                 
-                k_choice = str(input("Entering k for clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
-                    
-                if (k_choice == 'best_k'):
+                if(type_choice == 'spectral'):
+                    k_choice = str(input("Entering k for spectral clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
+                else:
+                    k_choice = str(input("Entering k for embedding + clustering: Enter an int, a list of ints (split with ','): "))                                             
+                    d = int (input("Enter d parameter for d-dimensional embedding: "))
+                    beta = None
+                    if ("hope" in algorithm_choice):
+                        beta = float(input("Enter beta parameter for d-dimensional HOPE embedding: "))
+                
+                if ((k_choice == 'best_k')and(type_choice == 'spectral')):
                     n_of_best_ks = int(input("Enter the number of best_ks to try: "))              
                       
                 elif(k_choice.split(',')):
@@ -311,16 +318,20 @@ while (end==False):
                       
             if ((type_choice == 'spectral') or (type_choice == 'embeddings')):              
                 
-                if (k_initial_choice != 0):
-                    k_choice = str(input("Entering k for clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
-                
-                if(type_choice == 'embeddings'):
-                                             
-                    d = int (input("Enter d parameter for d-dimensional embedding: "))
-                    beta = None
-                    if ("hope" in algorithm_choice):
-                        beta = float(input("Enter beta parameter for d-dimensional HOPE embedding: "))
-              
+                if (k_initial_choice != 0): 
+                    
+                    if(type_choice == 'spectral'):
+                    
+                        k_choice = str(input("Entering k for spectral clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
+                        
+                    else:#embeddings: best_k with eigengap may not be good for Embedding+Clustering
+                        
+                        k_choice = str(input("Entering k for embedding + clustering: Enter an int, a list of ints (split with ','): "))                                             
+                        d = int (input("Enter d parameter for d-dimensional embedding: "))
+                        beta = None
+                        if ("hope" in algorithm_choice):
+                            beta = float(input("Enter beta parameter for d-dimensional HOPE embedding: "))
+                  
             else: #type_choice == 'community'
             
                 G = nx.from_numpy_matrix(A)  
@@ -334,18 +345,22 @@ while (end==False):
                 
                     if (k_initial_choice != 0):
                         
-                        k_choice = str(input("Entering k for clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
+                        if (type_choice == 'spectral'):
+                            k_choice = str(input("Entering k for spectral clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))                               
+                            if (k_choice == 'best_k'):     
+                                n_of_best_ks = int(input("Enter the number of best_ks to try: "))   
+                        else:
+                            k_choice = str(input("Entering k for embedding+clustering: Enter an int, a list of ints (split with ','): "))                                            
                         
-                        if (k_choice == 'best_k'):     
-                            n_of_best_ks = int(input("Enter the number of best_ks to try: "))
-                                                                 
+                        if (k_choice == 'best_k'): 
+                            pass
                         elif(k_choice.split(',')):
                             ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
                                
                         else:
                             raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
                           
-                    if(k_choice == 'best_k'):
+                    if((k_choice == 'best_k') and (type_choice == 'spectral')):
                         if('shimalik' in algorithm_choice):
                             L = pcn_final.compute_laplacian_matrix(A)
                             D = pcn_final.degree_matrix(A) 
