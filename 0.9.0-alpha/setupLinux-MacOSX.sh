@@ -1,4 +1,5 @@
 #!/bin/bash
+
 if [[ $OSTYPE == 'linux-gnu'* ]] || [[ $OSTYPE == 'darwin'* ]];
 then  
 
