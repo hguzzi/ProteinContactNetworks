@@ -213,37 +213,7 @@ while (end==False):
             algorithms_choice.append(dict_supported_algorithms_type_selected[algorithm_choice_numeric])            
         
         print('Selected algorithms: '+ str(algorithms_choice))
-        
-        """
-        TO DELETE
-        not_supported_algorithms = []
-        for algorithm_choice in algorithms_choice:
-                      
-            if ((algorithm_choice not in supported_algorithms_clustering) and (algorithm_choice not in supported_algorithms_embeddings) and
-               (algorithm_choice not in supported_algorithms_communities)):
-                not_supported_algorithms.append(algorithm_choice)
-                algorithms_choice.remove(algorithm_choice)
-                        
-        if (len(not_supported_algorithms)>0):
-            print("Algorithms {} not supported yet.".format(str(not_supported_algorithms)))
-        """
-        
-        if((len(proteins_list)>1) or (len(algorithms_choice)>1)):
-            """
-            if ((type_choice == 'spectral') or (type_choice == 'embeddings')):
-               k_initial_choice = int(input("Enter 0 if you want to use the same parameters for {} clustering to all the proteins: ".format(type_choice)))
-            
-            if (type_choice == 'community'):
-                for algorithm_choice in algorithms_choice:
-                    if ('asyn_fluidc' in algorithm_choice):               
-                        k_initial_choice = int(input("Enter 0 if you want to use the same number of community k for Asyn FluidC to all the proteins: "))
-                        break
-            """
-            pass
-            
-        elif((len(proteins_list)==1) and (len(algorithms_choice)==1)):
-            k_initial_choice = 0
-            
+                   
         if ((type_choice == 'spectral') or (type_choice == 'embeddings')):
            
             if (k_initial_choice == 0):
@@ -270,12 +240,14 @@ while (end==False):
             
         if (type_choice == 'community'):
             
+            k_initial_choice = 1
+            
             for algorithm_choice in algorithms_choice:
                 if ('asyn_fluidc' in algorithms_choice):
               
                     k_initial_choice = int(input("Enter 0 if you want to use the same number of community k for Asyn FluidC to all the proteins: "))
                     break
-                
+                         
             if (k_initial_choice == 0):
                 k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
                 if(k_choice.split(',')):
