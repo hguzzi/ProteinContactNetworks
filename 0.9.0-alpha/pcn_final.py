@@ -16,9 +16,9 @@ from scipy.linalg import eigh
 import warnings
 import os
 import base64 
-#import matplotlib.pyplot as plt# NEW
 #DELETED PRODY LIBRARY
 
+#from skfuzzy import cmeans, cmeans_predict
 from networkx.algorithms.centrality import degree_centrality, eigenvector_centrality, closeness_centrality, betweenness_centrality
 
 from gem.embedding.hope     import HOPE
@@ -74,8 +74,11 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None):
                 not_existing_adj_files.append(file)
            
         if(not all_adj_files_exists):
-            for protein in not_existing_adj_files:
-                p_name = protein[:4]   #adj = 6vxx_adj_mat.txt
+            for filename in not_existing_adj_files:
+                filename_splitted = (filename.split(".txt"))[0].split("_") #adj = 6vxx_adj_mat_min_max.txt
+                p_name = filename_splitted[0]   
+                min_ = float (filename_splitted[3])
+                max_ = float (filename_splitted[4])
                 print(("protein {} adj matrix missing...").format(p_name))
                 protein_path = proteins_path+p_name+".pdb"
                 atoms = readPDBFile(protein_path)
@@ -83,9 +86,7 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None):
                 dict_residue_name = associateResidueName(residues)
                 residue_names = np.array(list (dict_residue_name.items()))
                                                 
-                min_ = int(input("Entering non covalent bonds threshold distance for PCN costruction: ") or 4)    
-                max_ = int(input("Entering only significant bonds threshold distance for PCN costruction : ") or 8)
-                print("computing adjacency matrix... (This may take time)")
+                print("computing adjacency matrix with thresholds: min = {} and max = {} ... (This may take time)".format(min_, max_))
                 output_path = os.path.abspath(os.path.join(adj_path, os.pardir))+add_slash_to_path
                 A = adjacent_matrix(output_path, residues, p_name, min_, max_)
             
@@ -577,10 +578,14 @@ def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  
             train, t = model.learn_embedding(graph=nx.from_numpy_matrix(A))
         else: raise Exception ("embedding {} not supported".format(embedding))
     
+    """
     fcm = FCM(n_clusters=n_clusters)
     fcm.fit(train)
     labels = fcm.predict(train)
-
+    """
+    centers, u, _, _, _, _, _ = cmeans(train.T, n_clusters, 2, error=0.005, maxiter=1000)
+    labels = np.argmax(u, axis=0)
+    
     return labels
   
 def ssc_shimalik(A, n_clusters = None, embedding=None, d=2, beta=0.01):
@@ -610,11 +615,15 @@ def ssc_shimalik(A, n_clusters = None, embedding=None, d=2, beta=0.01):
                 model = LaplacianEigenmaps(d=d)
             train, t = model.learn_embedding(graph=nx.from_numpy_matrix(A))
         else: raise Exception ("embedding {} not supported".format(embedding))
-        
+    
+    """
     fcm = FCM(n_clusters=n_clusters)
     fcm.fit(train)
     labels = fcm.predict(train)
-
+    """
+    centers, u, _, _, _, _, _ = cmeans(train.T, n_clusters, 2, error=0.005, maxiter=1000)
+    labels = np.argmax(u, axis=0)
+    
     return labels
 
 def hsc_shimalik(A, n_clusters = None, embedding = None, d=2, beta=0.01):

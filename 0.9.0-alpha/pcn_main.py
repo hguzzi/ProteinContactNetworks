@@ -78,6 +78,7 @@ if(os.path.isfile(os.getcwd()+add_slash_to_path+"config.ini")):
         proteins_path = str (input("Insert Proteins filepath: "))
 
 else:#config file not found, create it
+
     print('No config file found... Start to create a new one')
     print('Input the Directory in which you want to store the outputs')
     print('The software will create three subdirectories')
@@ -102,6 +103,7 @@ else:#config file not found, create it
 end=False 
 
 while (end==False):
+
     print('As First Step you must choose Format File Input: PDB structures or Preprocessed PCN')
     initial_choice = str (input("Digit 'pdb' to use .pdb files or  'adj' to load existing PCN: ")).casefold()
     
@@ -214,45 +216,46 @@ while (end==False):
         
         print('Selected algorithms: '+ str(algorithms_choice))
                    
-        if ((type_choice == 'spectral') or (type_choice == 'embeddings')):
+    if ((type_choice == 'spectral') or (type_choice == 'embeddings')):
            
-            if (k_initial_choice == 0):
-                
-                if(type_choice == 'spectral'):
-                    k_choice = str(input("Entering k for spectral clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
-                else:
-                    k_choice = str(input("Entering k for embedding + clustering: Enter an int, a list of ints (split with ','): "))                                             
-                    d = int (input("Enter d parameter for d-dimensional embedding: "))
-                    beta = None
-                    for algorithm_choice in algorithms_choice:
-                        if ("hope" in algorithm_choice):
-                            beta = float(input("Enter beta parameter for d-dimensional HOPE embedding: "))
-                            break
-                
-                if ((k_choice == 'best_k') and (type_choice == 'spectral')):
-                    n_of_best_ks = int(input("Enter the number of best_ks to try: "))              
-                      
-                elif(k_choice.split(',')):
-                    ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
-                                  
-                else:
-                    raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
-            
-        if (type_choice == 'community'):
-            
-            k_initial_choice = 1
-            
-            for algorithm_choice in algorithms_choice:
-                if ('asyn_fluidc' in algorithms_choice):
+        k_initial_choice = int(input("Enter 0 if you want to use the same number of clusters k for Spectral Clustering to all the proteins: ") or 1)
+        if (k_initial_choice == 0):
               
-                    k_initial_choice = int(input("Enter 0 if you want to use the same number of community k for Asyn FluidC to all the proteins: "))
-                    break
-                         
-            if (k_initial_choice == 0):
-                k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
-                if(k_choice.split(',')):
-                    ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
+            if(type_choice == 'spectral'):
+                k_choice = str(input("Entering k for spectral clustering: Enter an int, a list of ints (split with ',') or type 'best_k': ") or 'best_k')  
+            else: #embeddings
+                k_choice = str(input("Entering k for embedding + clustering: Enter an int, a list of ints (split with ','): "))                                             
+                d = int (input("Enter d parameter for d-dimensional embedding: "))
+                beta = None
+                for algorithm_choice in algorithms_choice:
+                    if ("hope" in algorithm_choice):
+                        beta = float(input("Enter beta parameter for d-dimensional HOPE embedding: "))
+                        break
+              
+            if ((k_choice == 'best_k') and (type_choice == 'spectral')):
+                n_of_best_ks = int(input("Enter the number of best_ks to try: ") or 1)              
+                   
+            elif(k_choice.split(',')):
+                ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
+                                  
+            else:
+                raise Exception("'k_choice' input must be an int, a list of ints or 'best_k' but '{}' given.".format(k_choice))   
+            
+    elif (type_choice == 'community'):
+            
+        if ('asyn_fluidc' in algorithms_choice):
+                
+            k_initial_choice = int(input("Enter 0 if you want to use the same number of community k for Asyn FluidC to all the proteins: ") or 1)
+                                         
+        if (k_initial_choice == 0):
+            k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
+            
+            if(k_choice.split(',')):
+                ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
    
+    if (len(algorithms_choice)>0):
+        plot_p = int(input("Press 0 if you want to compute the Partecipation Coef plot: "))
+    
     for protein in proteins_list:
         
         p_name = protein[:4]
@@ -300,28 +303,8 @@ while (end==False):
                     print("{} not supported".format(centrality_choice))
         
         if (len(algorithms_choice)>0):
-                      
-            if ((type_choice == 'spectral') or (type_choice == 'embeddings')):              
-                
-                if (k_initial_choice != 0): 
-                    
-                    if(type_choice == 'spectral'):
-                    
-                        k_choice = str(input("Entering k for spectral clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))  
-                        
-                    else:#embeddings: best_k with eigengap may not be good for Embedding+Clustering
-                        
-                        k_choice = str(input("Entering k for embedding + clustering: Enter an int, a list of ints (split with ','): "))                                             
-                        d = int (input("Enter d parameter for d-dimensional embedding: "))
-                        beta = None
-                        if ("hope" in algorithm_choice):
-                            beta = float(input("Enter beta parameter for d-dimensional HOPE embedding: "))
-                  
-            else: #type_choice == 'community'
-            
-                G = nx.from_numpy_matrix(A)  
-            
-            plot_p = int(input("Press 0 if you want to compute the Partecipation Coef plot: "))
+
+            G = nx.from_numpy_matrix(A)
             
             for algorithm_choice in algorithms_choice:  
                   
@@ -332,7 +315,7 @@ while (end==False):
                     if (k_initial_choice != 0):
                         
                         if (type_choice == 'spectral'):
-                            k_choice = str(input("Entering k for spectral clustering: Enter an int, a list of ints (split with ',') or type 'best_k': "))                               
+                            k_choice = str(input("Entering k for spectral clustering {} algorithm: Enter an int, a list of ints (split with ',') or type 'best_k': ".format(algorithm_choice)))                               
                             if (k_choice == 'best_k'):     
                                 n_of_best_ks = int(input("Enter the number of best_ks to try: "))   
                         else:
