@@ -122,7 +122,7 @@ def pymol_plot_chain(protein_path, output_path, algorithm_type, algorithm_name, 
     cmd.do("save {}{}{}Sessions{}{}_{}_{}_{}{}_chain_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, ncoms_or_k, k))
     cmd.do("delete {}".format(protein))
     
-def pymol_plot_embeddings(protein_path, output_path, algorithm_type, algorithm_name, k, d, beta=None):
+def pymol_plot_embeddings(protein_path, output_path, algorithm_type, algorithm_name, k, d, beta=None, walk_len=None, num_walks=None):
 
     cmd.do("delete {}".format("all"))
     cmd.do("load {}".format(protein_path))
@@ -132,6 +132,10 @@ def pymol_plot_embeddings(protein_path, output_path, algorithm_type, algorithm_n
      
     if (beta is not None):
         filename = output_path+"{}{}{}{}{}_{}_{}_d{}_beta{}_k{}.txt".format(algorithm_name, add_slash_to_path, algorithm_type, add_slash_to_path, protein_name, algorithm_type, algorithm_name, d, beta, k)
+    
+    elif ((num_walks is not None) and (walk_len is not None)):
+        filename = output_path+"{}{}{}{}{}_{}_{}_d{}_wl{}_nw{}_k{}.txt".format(algorithm_name, add_slash_to_path, algorithm_type, add_slash_to_path, protein_name, algorithm_type, algorithm_name, d, walk_len, num_walks, k)
+            
     else:
         filename = output_path+"{}{}{}{}{}_{}_{}_d{}_k{}.txt".format(algorithm_name, add_slash_to_path, algorithm_type, add_slash_to_path, protein_name, algorithm_type, algorithm_name, d, k)
     
@@ -163,6 +167,9 @@ def pymol_plot_embeddings(protein_path, output_path, algorithm_type, algorithm_n
     if (beta is not None):
         cmd.do("save {}{}{}Png{}{}_{}_d{}_beta{}_k{}.png".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name, d, beta, k))    
         cmd.do("save {}{}{}Sessions{}{}_{}_d{}_beta{}_k{}_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name, d, beta, k))
+    elif ((num_walks is not None) and (walk_len is not None)):
+        cmd.do("save {}{}{}Png{}{}_{}_d{}_wl{}_nw{}_k{}.png".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name, d, walk_len, num_walks, k))    
+        cmd.do("save {}{}{}Sessions{}{}_{}_d{}_wl{}_nw{}_k{}_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name, d, walk_len, num_walks, k))
     else:
         cmd.do("save {}{}{}Png{}{}_{}_d{}_k{}.png".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name, d, k))   
         cmd.do("save {}{}{}Sessions{}{}_{}_d{}_k{}_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name, d, k))

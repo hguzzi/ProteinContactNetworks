@@ -19,9 +19,15 @@ print(" ")
 input('Press Enter to Continue')
 
 supported_algorithms_clustering = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik"]
-supported_algorithms_embeddings = ["unnorm_ssc_hope", "norm_ssc_hope", "unnorm_hsc_hope", "norm_hsc_hope", "hsc_shimalik_hope", "ssc_shimalik_hope",
+supported_algorithms_embeddings = [
+                                   "unnorm_ssc_hope", "norm_ssc_hope", "unnorm_hsc_hope", "norm_hsc_hope", "hsc_shimalik_hope", "ssc_shimalik_hope",
+                                   
                                    "unnorm_ssc_laplacianeigenmaps", "norm_ssc_laplacianeigenmaps", "unnorm_hsc_laplacianeigenmaps", "norm_hsc_laplacianeigenmaps",
-                                   "hsc_shimalik_laplacianeigenmaps", "ssc_shimalik_laplacianeigenmaps"]
+                                   "hsc_shimalik_laplacianeigenmaps", "ssc_shimalik_laplacianeigenmaps", 
+                                   
+                                   "unnorm_ssc_node2vec", "norm_ssc_node2vec", "unnorm_hsc_node2vec", "norm_hsc_node2vec", "hsc_shimalik_node2vec", 
+                                   "ssc_shimalik_node2vec",
+                                   ]
 supported_algorithms_communities = ["louvain", "leiden", "walktrap", "asyn_fluidc", "greedy_modularity", "infomap", "spinglass"]
 
 supported_centralities_measures = ["closeness", "eigenvector", "betweenness", "degree_c"]
@@ -227,9 +233,15 @@ while (end==False):
                 k_choice = str(input("Entering k for embedding + clustering: Enter an int, a list of ints (split with ','): "))                                             
                 d = int (input("Enter d parameter for d-dimensional embedding: "))
                 beta = None
+                walk_len = None
+                num_walks = None
                 for algorithm_choice in algorithms_choice:
                     if ("hope" in algorithm_choice):
                         beta = float(input("Enter beta parameter for d-dimensional HOPE embedding: "))
+                        break
+                    if("node2vec" in algorithm_choice):
+                        walk_len = int(input("Enter the lenght of each random walk: "))
+                        num_walks = int(input("Enter the number of walks per node: "))
                         break
               
             if ((k_choice == 'best_k') and (type_choice == 'spectral')):
@@ -352,13 +364,14 @@ while (end==False):
                         print("{} with {} with k = {}".format(p_name, algorithm_choice, k))
                         method_to_call = getattr(pcn_final, algorithm_choice)
                         if type_choice == 'embeddings':
-                            labels = method_to_call(A, n_clusters=k, d=d, beta=beta)
+                            labels = method_to_call(A, n_clusters=k, d=d, beta=beta, walk_len=walk_len, num_walks=num_walks)
                         elif type_choice == 'spectral':
                             labels = method_to_call(A, n_clusters=k)
                             d=None
                             beta=None
-                            
-                        pcn_final.save_labels(output_path, labels, residue_names, p_name, algorithm_choice, d, beta)
+                            walk_length=None
+                            num_walks=None
+                        pcn_final.save_labels(output_path, labels, residue_names, p_name, algorithm_choice, d, beta, walk_len, num_walks)
                         
                         if "ssc" in algorithm_choice:
                             print("Given k = {} but soft clustering algoritmh found k {} clusters".format(k, int(max(labels)+1)))
@@ -366,7 +379,7 @@ while (end==False):
                         
                         #pymol 
                         if(type_choice == 'embeddings'):
-                            pcn_pymol_scripts.pymol_plot_embeddings(protein_path, output_path, "ClustersEmbeddings", algorithm_choice, k, d, beta)
+                            pcn_pymol_scripts.pymol_plot_embeddings(protein_path, output_path, "ClustersEmbeddings", algorithm_choice, k, d, beta, walk_len, num_walks)
                                      
                         else:#clustering
                             pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Clusters", algorithm_choice, k)

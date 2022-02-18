@@ -18,5 +18,6 @@ call pip install git+https://github.com/GiulioRossetti/cdlib.git
 call conda install -c schrodinger pymol
 call pip install pytz
 call pip install python-dateutil
+call pip install git+https://github.com/eliorc/node2vec.git
 
 pause

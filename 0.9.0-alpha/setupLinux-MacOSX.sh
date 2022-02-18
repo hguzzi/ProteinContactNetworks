@@ -25,5 +25,7 @@ then
 	conda install -c schrodinger pymol #TO FIX
 	pip install pytz
 	pip install python-dateutil
+	pip install git+https://github.com/eliorc/node2vec.git
+	
 	
 fi

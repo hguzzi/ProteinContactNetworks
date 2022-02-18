@@ -23,7 +23,7 @@ from networkx.algorithms.centrality import degree_centrality, eigenvector_centra
 
 from gem.embedding.hope     import HOPE
 from gem.embedding.lap      import LaplacianEigenmaps
-#from gem.embedding.node2vec import node2vec
+from node2vec import Node2Vec
 
 from cdlib import algorithms
 #from networkx.algorithms.community.centrality import girvan_newman as girvan_newman_
@@ -242,12 +242,18 @@ def adjacent_matrix(output_path, residues, p, min_=4, max_=8):
     return adj
 
 #SAVE LABELS
-def save_labels(output_path, labels, residue_names, p_name, method=None, d=None, beta=None):
+def save_labels(output_path, labels, residue_names, p_name, method=None, d=None, beta=None, walk_len=None, num_walks=None):
 
     supported_methods_clustering = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik"]
-    supported_methods_embeddings = ["unnorm_ssc_hope", "norm_ssc_hope", "unnorm_hsc_hope", "norm_hsc_hope", "hsc_shimalik_hope", "ssc_shimalik_hope",
-                                       "unnorm_ssc_laplacianeigenmaps", "norm_ssc_laplacianeigenmaps", "unnorm_hsc_laplacianeigenmaps", "norm_hsc_laplacianeigenmaps",
-                                       "hsc_shimalik_laplacianeigenmaps", "ssc_shimalik_laplacianeigenmaps"]
+    supported_methods_embeddings =  [
+                                   "unnorm_ssc_hope", "norm_ssc_hope", "unnorm_hsc_hope", "norm_hsc_hope", "hsc_shimalik_hope", "ssc_shimalik_hope",
+                                   
+                                   "unnorm_ssc_laplacianeigenmaps", "norm_ssc_laplacianeigenmaps", "unnorm_hsc_laplacianeigenmaps", "norm_hsc_laplacianeigenmaps",
+                                   "hsc_shimalik_laplacianeigenmaps", "ssc_shimalik_laplacianeigenmaps", 
+                                   
+                                   "unnorm_ssc_node2vec", "norm_ssc_node2vec", "unnorm_hsc_node2vec", "norm_hsc_node2vec", "hsc_shimalik_node2vec", 
+                                   "ssc_shimalik_node2vec",
+                                   ]
     supported_methods_communities = ["louvain", "leiden", "walktrap", "asyn_fluidc", "greedy_modularity", "infomap", "spinglass"]
     
     if platform == "win32":
@@ -335,7 +341,8 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
         if beta is not None:
 
             f = open("{}{}{}_{}_{}_d{}_beta{}_k{}.txt".format(method_output_path, add_slash_to_path, p_name, name, method, d, beta, k),"w")
-
+        elif num_walks is not None and walk_len is not None:
+            f = open("{}{}{}_{}_{}_d{}_wl{}_nw{}_k{}.txt".format(method_output_path, add_slash_to_path, p_name, name, method, d, num_walks, walk_len, k), "w")
         else:
             
             f = open("{}{}{}_{}_{}_d{}_k{}.txt".format(method_output_path, add_slash_to_path, p_name, name, method, d, k),"w")
@@ -358,13 +365,13 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
 
 #COMMUNITY EXTRACTION
 
-def extract_labels_from_coms(num_nodes,coms, algorithm_name):
+def extract_labels_from_coms(num_walks,coms, algorithm_name):
   
     if (algorithm_name != "Asyn FluidC"):
         n_coms = len(coms) 
         print("number of {} communities: {}".format(algorithm_name, n_coms))
     
-    labels = np.zeros((num_nodes, 1))
+    labels = np.zeros((num_walks, 1))
     dict_node_algorithm_com = dict ()
 
     for label, com in enumerate(coms):
@@ -381,8 +388,8 @@ def louvain(G):
 
     louvain = algorithms.louvain(G)
     coms = louvain.communities
-    num_nodes = G.number_of_nodes()
-    labels = extract_labels_from_coms(num_nodes, coms, "Louvain")
+    num_walks = G.number_of_nodes()
+    labels = extract_labels_from_coms(num_walks, coms, "Louvain")
 
     return labels
 
@@ -390,8 +397,8 @@ def leiden(G):
 
     leiden = algorithms.leiden(G)
     coms = leiden.communities
-    num_nodes = G.number_of_nodes()
-    labels = extract_labels_from_coms(num_nodes, coms, "Leiden")
+    num_walks = G.number_of_nodes()
+    labels = extract_labels_from_coms(num_walks, coms, "Leiden")
 
     return labels  
  
@@ -399,41 +406,41 @@ def walktrap(G):
 
     walktrap = algorithms.walktrap(G)
     coms = walktrap.communities
-    num_nodes = G.number_of_nodes()
-    labels = extract_labels_from_coms(num_nodes, coms, "Walktrap")
+    num_walks = G.number_of_nodes()
+    labels = extract_labels_from_coms(num_walks, coms, "Walktrap")
       
     return labels
   
 def greedy_modularity(G):
 
     coms = greedy_modularity_communities(G)
-    num_nodes = G.number_of_nodes()
-    labels = extract_labels_from_coms(num_nodes, coms, "Greedy Modularity")
+    num_walks = G.number_of_nodes()
+    labels = extract_labels_from_coms(num_walks, coms, "Greedy Modularity")
 
     return labels
 
 def infomap(G):
     
     coms = algorithms.infomap(G).communities
-    num_nodes = G.number_of_nodes()
-    labels = extract_labels_from_coms(num_nodes, coms, "Infomap")
+    num_walks = G.number_of_nodes()
+    labels = extract_labels_from_coms(num_walks, coms, "Infomap")
 
     return labels
 
 def asyn_fluidc(G, k):
   
     coms = asyn_fluidc_(G, k)
-    num_nodes = G.number_of_nodes()
+    num_walks = G.number_of_nodes()
     print("number of Asyn FluidC communities: {}".format(k))
-    labels = extract_labels_from_coms(num_nodes, coms, "Asyn FluidC")
+    labels = extract_labels_from_coms(num_walks, coms, "Asyn FluidC")
   
     return labels
   
 def spinglass(G):
 
     coms = algorithms.spinglass(G).communities
-    num_nodes = G.number_of_nodes()
-    labels = extract_labels_from_coms(num_nodes, coms, "Spin Glass")
+    num_walks = G.number_of_nodes()
+    labels = extract_labels_from_coms(num_walks, coms, "Spin Glass")
   
     return labels
   
@@ -519,7 +526,7 @@ def computeBestK(eigenvalues, n_k = 1):
 
 def hardSpectralClustering(A, n_clusters = None, norm=False, embedding=None, d=2, beta=0.01):
     
-    supported_embeddings = ["HOPE", "LaplacianEigenmaps"]
+    supported_embeddings = ["HOPE", "LaplacianEigenmaps", "Node2Vec"]
     
     if embedding is None:
     
@@ -534,15 +541,21 @@ def hardSpectralClustering(A, n_clusters = None, norm=False, embedding=None, d=2
     else:
     
         if (embedding in supported_embeddings):
-    
+            
+            G = nx.from_numpy_matrix(A)
             if (embedding == "HOPE"): #embedding dimension (d) and decay factor (beta) as inputs
                 model = HOPE(d=d, beta=beta)
-            if (embedding == "node2vec"):
-                #model = node2vec(d=d, max_iter=1, walk_len=80, num_walks=10, con_size=10, ret_p=1, inout_p=1)
-                pass
-            if (embedding == "LaplacianEigenmaps"):
+            elif (embedding == "LaplacianEigenmaps"):
                 model = LaplacianEigenmaps(d=d)
-            train, t = model.learn_embedding(graph=nx.from_numpy_matrix(A))
+            elif (embedding == "Node2Vec"):
+                model = Node2Vec(G, dimensions=d, walk_length=walk_len, num_walks=num_walks, workers = 1)
+            
+            if embedding == "Node2Vec":
+                model = model.fit()
+                train = model.wv.vectors
+            else:
+                train, t = model.learn_embedding(graph=G)
+            
         else: raise Exception ("embedding {} not supported".format(embedding))
     
     km = KMeans(n_clusters=n_clusters).fit(train)
@@ -552,7 +565,7 @@ def hardSpectralClustering(A, n_clusters = None, norm=False, embedding=None, d=2
 
 def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  d=2, beta=0.01):
      
-    supported_embeddings = ["HOPE", "LaplacianEigenmaps"]
+    supported_embeddings = ["HOPE", "LaplacianEigenmaps", "Node2Vec"]
     
     if embedding is None:   
         
@@ -568,14 +581,21 @@ def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  
     
         if (embedding in supported_embeddings):
              
-            if (embedding == "HOPE"):
+            G = nx.from_numpy_matrix(A)
+            if (embedding == "HOPE"): #embedding dimension (d) and decay factor (beta) as inputs
                 model = HOPE(d=d, beta=beta)
-            if (embedding == "node2vec"):
-                #model = node2vec(d=d, max_iter=1, walk_len=80, num_walks=10, con_size=10, ret_p=1, inout_p=1)
-                pass
-            if (embedding == "LaplacianEigenmaps"):
+            elif (embedding == "LaplacianEigenmaps"):
                 model = LaplacianEigenmaps(d=d)
-            train, t = model.learn_embedding(graph=nx.from_numpy_matrix(A))
+            elif (embedding == "Node2Vec"):
+                model = Node2Vec(G, dimensions=d, walk_length=walk_len, num_walks=num_walks, workers = 1)
+               
+            if embedding == "Node2Vec":
+                model = model.fit()
+                train = model.wv.vectors
+
+            else:
+                train, t = model.learn_embedding(graph=G)
+            
         else: raise Exception ("embedding {} not supported".format(embedding))
     
     fcm = FCM(n_clusters=n_clusters)
@@ -586,9 +606,9 @@ def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  
     
     return labels
   
-def ssc_shimalik(A, n_clusters = None, embedding=None, d=2, beta=0.01):
+def ssc_shimalik(A, n_clusters = None, embedding=None, d=2, beta=None, walk_len=None, num_walks=None):
     
-    supported_embeddings = ["HOPE", "LaplacianEigenmaps"]
+    supported_embeddings = ["HOPE", "LaplacianEigenmaps", "Node2Vec"]
     
     if embedding is None:
         
@@ -603,15 +623,21 @@ def ssc_shimalik(A, n_clusters = None, embedding=None, d=2, beta=0.01):
     else:
     
         if (embedding in supported_embeddings):
-    
-            if (embedding == "HOPE"):
+                    
+            G = nx.from_numpy_matrix(A)
+            if (embedding == "HOPE"): #embedding dimension (d) and decay factor (beta) as inputs
                 model = HOPE(d=d, beta=beta)
-            if (embedding == "node2vec"):
-                #model = node2vec(d=d, max_iter=1, walk_len=80, num_walks=10, con_size=10, ret_p=1, inout_p=1)
-                pass
-            if (embedding == "LaplacianEigenmaps"):
+            elif (embedding == "LaplacianEigenmaps"):
                 model = LaplacianEigenmaps(d=d)
-            train, t = model.learn_embedding(graph=nx.from_numpy_matrix(A))
+            elif (embedding == "Node2Vec"):
+                model = Node2Vec(G, dimensions=d, walk_length=walk_len, num_walks=num_walks, workers = 1)
+            
+            if embedding == "Node2Vec":
+                model = model.fit()
+                train = model.wv.vectors
+            else:
+                train, t = model.learn_embedding(graph=G)
+
         else: raise Exception ("embedding {} not supported".format(embedding))
     
     fcm = FCM(n_clusters=n_clusters)
@@ -623,9 +649,9 @@ def ssc_shimalik(A, n_clusters = None, embedding=None, d=2, beta=0.01):
     
     return labels
 
-def hsc_shimalik(A, n_clusters = None, embedding = None, d=2, beta=0.01):
+def hsc_shimalik(A, n_clusters = None, embedding = None, d=2, beta=None, walk_len=None, num_walks=None):
 
-    supported_embeddings = ["HOPE", "LaplacianEigenmaps"]
+    supported_embeddings = ["HOPE", "LaplacianEigenmaps", "Node2Vec"]
   
     if embedding is None:
   
@@ -644,14 +670,21 @@ def hsc_shimalik(A, n_clusters = None, embedding = None, d=2, beta=0.01):
     else:
   
         if (embedding in supported_embeddings):
-            if (embedding == "HOPE"):
-              model = HOPE(d=d, beta=beta)
-            if (embedding == "node2vec"):
-              #model = node2vec(d=2, max_iter=1, walk_len=80, num_walks=10, con_size=10, ret_p=1, inout_p=1)
-              pass
-            if (embedding == "LaplacianEigenmaps"):
-              model = LaplacianEigenmaps(d=d)
-            train, t = model.learn_embedding(graph=nx.from_numpy_matrix(A))
+                        
+            G = nx.from_numpy_matrix(A)
+            if (embedding == "HOPE"): #embedding dimension (d) and decay factor (beta) as inputs
+                model = HOPE(d=d, beta=beta)
+            elif (embedding == "LaplacianEigenmaps"):
+                model = LaplacianEigenmaps(d=d)
+            elif (embedding == "Node2Vec"):
+                model = Node2Vec(G, dimensions=d, walk_length=walk_len, num_walks=num_walks, workers = 1)
+            
+            if embedding == "Node2Vec":
+                model = model.fit()
+                train = model.wv.vectors
+            else:
+                train, t = model.learn_embedding(graph=G)
+            
         else:
             raise Exception ("embedding {} not supported".format(embedding))
 
@@ -691,7 +724,36 @@ def norm_hsc_hope(A, n_clusters = None, norm=True, embedding="HOPE", d=2, beta=0
 
     labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta)
     return labels
+#NEW   
+def unnorm_hsc_node2vec(A, n_clusters = None, norm=False, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
 
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks)
+    return labels
+    
+def norm_hsc_node2vec(A, n_clusters = None, norm=True, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
+
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks)
+
+def unnorm_ssc_node2vec(A, n_clusters = None, norm=False, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
+
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks)
+    return labels
+    
+def norm_ssc_node2vec(A, n_clusters = None, norm=True, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
+
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks)
+    return labels
+
+def hsc_shimalik_node2vec(A, n_clusters = None, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
+
+    labels = hsc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks)
+    return labels
+    
+def ssc_shimalik_node2vec(A, n_clusters = None, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
+
+    labels = ssc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks)
+    return labels
+#END
 def unnorm_ssc_hope(A, n_clusters = None, norm=False, embedding="HOPE", d=2, beta=0.01):
 
     labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta)
