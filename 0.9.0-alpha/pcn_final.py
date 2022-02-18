@@ -578,13 +578,11 @@ def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  
             train, t = model.learn_embedding(graph=nx.from_numpy_matrix(A))
         else: raise Exception ("embedding {} not supported".format(embedding))
     
-    """
     fcm = FCM(n_clusters=n_clusters)
     fcm.fit(train)
     labels = fcm.predict(train)
-    """
-    centers, u, _, _, _, _, _ = cmeans(train.T, n_clusters, 2, error=0.005, maxiter=1000)
-    labels = np.argmax(u, axis=0)
+    #centers, u, _, _, _, _, _ = cmeans(train.T, n_clusters, 2, error=0.005, maxiter=1000)
+    #labels = np.argmax(u, axis=0)
     
     return labels
   
@@ -616,13 +614,12 @@ def ssc_shimalik(A, n_clusters = None, embedding=None, d=2, beta=0.01):
             train, t = model.learn_embedding(graph=nx.from_numpy_matrix(A))
         else: raise Exception ("embedding {} not supported".format(embedding))
     
-    """
     fcm = FCM(n_clusters=n_clusters)
     fcm.fit(train)
     labels = fcm.predict(train)
-    """
-    centers, u, _, _, _, _, _ = cmeans(train.T, n_clusters, 2, error=0.005, maxiter=1000)
-    labels = np.argmax(u, axis=0)
+    
+    #centers, u, _, _, _, _, _ = cmeans(train.T, n_clusters, 2, error=0.005, maxiter=1000)
+    #labels = np.argmax(u, axis=0)
     
     return labels
 

@@ -360,6 +360,10 @@ while (end==False):
                             
                         pcn_final.save_labels(output_path, labels, residue_names, p_name, algorithm_choice, d, beta)
                         
+                        if "ssc" in algorithm_choice:
+                            print("Given k = {} but soft clustering algoritmh found k {} clusters".format(k, int(max(labels)+1)))
+                            k = int(max(labels)) + 1
+                        
                         #pymol 
                         if(type_choice == 'embeddings'):
                             pcn_pymol_scripts.pymol_plot_embeddings(protein_path, output_path, "ClustersEmbeddings", algorithm_choice, k, d, beta)
