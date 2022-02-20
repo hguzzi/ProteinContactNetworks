@@ -231,17 +231,17 @@ while (end==False):
                 k_choice = str(input("Entering k for spectral clustering: Enter an int, a list of ints (split with ',') or type 'best_k': ") or 'best_k')  
             else: #embeddings
                 k_choice = str(input("Entering k for embedding + clustering: Enter an int, a list of ints (split with ','): "))                                             
-                d = int (input("Enter d parameter for d-dimensional embedding: "))
+                d = int (input("Enter d parameter for d-dimensional embedding: ") or 2)
                 beta = None
                 walk_len = None
                 num_walks = None
                 for algorithm_choice in algorithms_choice:
                     if ("hope" in algorithm_choice):
-                        beta = float(input("Enter beta parameter for d-dimensional HOPE embedding: "))
+                        beta = float(input("Enter beta parameter for d-dimensional HOPE embedding: ") or 0.01)
                         break
                     if("node2vec" in algorithm_choice):
-                        walk_len = int(input("Enter the lenght of each random walk: "))
-                        num_walks = int(input("Enter the number of walks per node: "))
+                        walk_len = int(input("Enter the lenght of each random walk: ") or 100)
+                        num_walks = int(input("Enter the number of walks per node: ") or 100)
                         break
               
             if ((k_choice == 'best_k') and (type_choice == 'spectral')):
@@ -259,11 +259,11 @@ while (end==False):
                 
             k_initial_choice = int(input("Enter 0 if you want to use the same number of community k for Asyn FluidC to all the proteins: ") or 1)
                                          
-        if (k_initial_choice == 0):
-            k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
+            if (k_initial_choice == 0):
+                k_choice = str(input("Entering k for Asyn FluidC: Enter an int, a list of ints (split with ','): "))
             
-            if(k_choice.split(',')):
-                ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
+                if(k_choice.split(',')):
+                    ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
    
     if (len(algorithms_choice)>0):
         plot_p = int(input("Press 0 if you want to compute the Partecipation Coef plot: "))

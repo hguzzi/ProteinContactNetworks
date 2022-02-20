@@ -342,7 +342,7 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
 
             f = open("{}{}{}_{}_{}_d{}_beta{}_k{}.txt".format(method_output_path, add_slash_to_path, p_name, name, method, d, beta, k),"w")
         elif num_walks is not None and walk_len is not None:
-            f = open("{}{}{}_{}_{}_d{}_wl{}_nw{}_k{}.txt".format(method_output_path, add_slash_to_path, p_name, name, method, d, num_walks, walk_len, k), "w")
+            f = open("{}{}{}_{}_{}_d{}_wl{}_nw{}_k{}.txt".format(method_output_path, add_slash_to_path, p_name, name, method, d, walk_len, num_walks, k), "w")
         else:
             
             f = open("{}{}{}_{}_{}_d{}_k{}.txt".format(method_output_path, add_slash_to_path, p_name, name, method, d, k),"w")
@@ -524,7 +524,7 @@ def computeBestK(eigenvalues, n_k = 1):
   
     return best_ks
 
-def hardSpectralClustering(A, n_clusters = None, norm=False, embedding=None, d=2, beta=0.01):
+def hardSpectralClustering(A, n_clusters = None, norm=False, embedding=None, d=2, beta=None, walk_len=None, num_walks=None):
     
     supported_embeddings = ["HOPE", "LaplacianEigenmaps", "Node2Vec"]
     
@@ -563,7 +563,7 @@ def hardSpectralClustering(A, n_clusters = None, norm=False, embedding=None, d=2
  
     return labels
 
-def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  d=2, beta=0.01):
+def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  d=2, beta=None, walk_len=None, num_walks=None):
      
     supported_embeddings = ["HOPE", "LaplacianEigenmaps", "Node2Vec"]
     
