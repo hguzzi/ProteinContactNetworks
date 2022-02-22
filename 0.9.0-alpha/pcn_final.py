@@ -6,7 +6,8 @@ import ast
 import networkx as nx
 import urllib
 from scipy.spatial.distance import euclidean
-from sklearn.cluster import SpectralClustering, KMeans
+from sklearn.cluster import SpectralClustering, KMeans, DBSCAN
+from networkx.linalg.algebraicconnectivity import fiedler_vector
 from fcmeans import FCM
 import collections
 from operator import itemgetter
@@ -244,7 +245,7 @@ def adjacent_matrix(output_path, residues, p, min_=4, max_=8):
 #SAVE LABELS
 def save_labels(output_path, labels, residue_names, p_name, method=None, d=None, beta=None, walk_len=None, num_walks=None):
 
-    supported_methods_clustering = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik"]
+    supported_methods_clustering = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik", "skl_spectral_clustering"]
     supported_methods_embeddings =  [
                                    "unnorm_ssc_hope", "norm_ssc_hope", "unnorm_hsc_hope", "norm_hsc_hope", "hsc_shimalik_hope", "ssc_shimalik_hope",
                                    
@@ -524,6 +525,7 @@ def computeBestK(eigenvalues, n_k = 1):
   
     return best_ks
 
+
 def hardSpectralClustering(A, n_clusters = None, norm=False, embedding=None, d=2, beta=None, walk_len=None, num_walks=None):
     
     supported_embeddings = ["HOPE", "LaplacianEigenmaps", "Node2Vec"]
@@ -693,7 +695,11 @@ def hsc_shimalik(A, n_clusters = None, embedding = None, d=2, beta=None, walk_le
 
     return labels
   
- #spectral clustering 
+def skl_spectral_clustering(A, n_clusters = None):
+    clustering = SpectralClustering(n_clusters=n_clusters, affinity='precomputed').fit(A)
+    return clustering.labels_
+
+#spectral clustering 
 def unnorm_hsc(A, n_clusters = None, norm=False, embedding=None, d=None, beta=None):
 
     labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta)
