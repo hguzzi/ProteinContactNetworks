@@ -266,7 +266,7 @@ while (end==False):
                     ks =  [int(item) for item in k_choice.replace(" ","").split(",")]
    
     if (len(algorithms_choice)>0):
-        plot_p = int(input("Press 0 if you want to compute the Partecipation Coef plot: "))
+        plot_p = int(input("Press 0 if you want to compute the participation Coef plot: "))
     
     for protein in proteins_list:
         
@@ -369,7 +369,7 @@ while (end==False):
                             labels = method_to_call(A, n_clusters=k)
                             d=None
                             beta=None
-                            walk_length=None
+                            walk_len=None
                             num_walks=None
                         pcn_final.save_labels(output_path, labels, residue_names, p_name, algorithm_choice, d, beta, walk_len, num_walks)
                         
@@ -388,7 +388,7 @@ while (end==False):
                             G = nx.from_numpy_matrix(A) 
                             residue_names_1 = np.array(residue_names[:, 1], dtype = str)
                             output_path_p = "{}{}{}{}".format(output_path, add_slash_to_path, algorithm_choice, add_slash_to_path)
-                            p = pcn_final.partecipation_coefs(G, labels, residue_names_1)
+                            p = pcn_final.participation_coefs(G, labels, residue_names_1)
                             pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, k)
                                     
                 else:#type_choice = 'community'
@@ -409,7 +409,7 @@ while (end==False):
                             
                             if (plot_p == 0): 
                                 residue_names_1 = np.array(residue_names[:, 1], dtype = str)
-                                p = pcn_final.partecipation_coefs(G, labels, residue_names_1)
+                                p = pcn_final.participation_coefs(G, labels, residue_names_1)
                                 output_path_p = "{}{}{}{}".format(output_path, add_slash_to_path, algorithm_choice, add_slash_to_path)
                                 pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, k) 
                     
@@ -421,7 +421,7 @@ while (end==False):
                         
                         if (plot_p == 0): 
                             residue_names_1 = np.array(residue_names[:, 1], dtype = str)
-                            p = pcn_final.partecipation_coefs(G, labels, residue_names_1)
+                            p = pcn_final.participation_coefs(G, labels, residue_names_1)
                             output_path_p = "{}{}{}{}".format(output_path, add_slash_to_path, algorithm_choice, add_slash_to_path)
                             pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, n_coms)
                         
@@ -430,3 +430,5 @@ while (end==False):
     choice=int(input('Please select 0 to make another analsys, otherwise select another numeric key to end the program: '))
     if (choice!=0):
         end=True
+    else:
+        proteins_path = proteins_path[:-1]

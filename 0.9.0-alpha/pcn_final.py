@@ -876,8 +876,8 @@ def closeness(G, p, residue_names_1, n):
     return dict_node_centrality
 
 #p score and z score coefs
-def partecipation_coefs(G, clusters, residue_names_1):
-  
+def participation_coefs(G, clusters, residue_names_1):
+
     A = nx.to_numpy_matrix(G)
     n = A.shape[0]
     P = dict()
@@ -886,7 +886,7 @@ def partecipation_coefs(G, clusters, residue_names_1):
     for i in range(n):
         k_i = np.sum(A[i,:]) 
         k_si = 0
-    
+  
         for j in range(n):
             if (i!=j):
                 if ((clusters[i] == clusters[j]) and (A[i,j]!=0)):#se il nodo i e il nodo j sono dello stesso cluster e c'è un arco che li connette
@@ -894,7 +894,7 @@ def partecipation_coefs(G, clusters, residue_names_1):
 
         k_s[i] = k_si
         P[i] = 1 - (k_s[i]/k_i)**2
-        
+    
     P_update_keys = dict() 
     for i, p in P.items():
         
