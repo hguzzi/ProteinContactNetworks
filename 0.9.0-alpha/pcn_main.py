@@ -43,6 +43,7 @@ elif platform == "darwin":
 elif platform == "win32":
     # Windows...
     add_slash_to_path = '\\'
+    print("Infomap algorithm not supported on Windows")
     supported_algorithms_communities.remove("infomap")
 
 
@@ -364,7 +365,9 @@ while (end==False):
                         print("{} with {} with k = {}".format(p_name, algorithm_choice, k))
                         method_to_call = getattr(pcn_final, algorithm_choice)
                         if type_choice == 'embeddings':
-                            labels = method_to_call(A, n_clusters=k, d=d, beta=beta, walk_len=walk_len, num_walks=num_walks)
+                            
+                            labels = method_to_call(A, n_clusters=k, d=d, walk_len=walk_len, num_walks=num_walks)
+                            
                         elif type_choice == 'spectral':
                             labels = method_to_call(A, n_clusters=k)
                             d=None
