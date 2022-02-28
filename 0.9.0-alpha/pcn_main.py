@@ -269,6 +269,16 @@ while (end==False):
     if (len(algorithms_choice)>0):
         plot_p = int(input("Press 0 if you want to compute the participation Coef plot: "))
     
+    if (centrality_initial_choice  == 0):
+            
+            centralities_choice = str(input("Select one, a list (splitted by ','), or 'all' centrality measures from {}: ".format(str(supported_centralities_measures)))).casefold()     
+            if centralities_choice == "all":
+                centralities_choice = supported_centralities_measures
+            elif(centralities_choice.split(',')):
+                centralities_choice =  [str(centrality_choice) for centrality_choice in centralities_choice.replace(" ","").split(",")]
+            else:
+                raise Exception("{} not supported".format(centralities_choice))
+    
     for protein in proteins_list:
         
         p_name = protein[:4]
@@ -292,15 +302,8 @@ while (end==False):
             print(("protein {}: CENTRALITY MEASURES COMPUTING NOW").format(p_name))
                               
             G = nx.from_numpy_matrix(A)  
-            centralities_choice = str(input("Select one, a list (splitted by ','), or 'all' centrality measures from {}: ".format(str(supported_centralities_measures)))).casefold()
             residue_names_1 = np.array(residue_names[:, 1], dtype = str)        
-            if centralities_choice == "all":
-                centralities_choice = supported_centralities_measures
-            elif(centralities_choice.split(',')):
-                centralities_choice =  [str(centrality_choice) for centrality_choice in centralities_choice.replace(" ","").split(",")]
-            else:
-                raise Exception("{} not supported".format(centralities_choice))
-                                                 
+
             for centrality_choice in centralities_choice:
             
                 print("Computing {} centrality measure on {} PCN".format(centrality_choice, p_name))
