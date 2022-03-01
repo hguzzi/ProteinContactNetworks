@@ -312,11 +312,11 @@ while (end==False):
                     method_to_call = getattr(pcn_final, centrality_choice)
                                 
                     centrality_measures = method_to_call(G, p_name, residue_names_1, 10)
-                    print(centrality_measures)
-                    pcn_pymol_scripts.pymol_plot_centralities(centrality_measures, protein_path, output_path, centrality_choice)
+                    pcn_final.save_centralities(output_path, centrality_measures, p_name, centrality_choice)
+                    pcn_pymol_scripts.pymol_plot_centralities(output_path, centrality_measures, protein_path, centrality_choice)
                             
                 else:
-                    print("{} not supported".format(centrality_choice))
+                    print("Centrality method {} not supported".format(centrality_choice))
         
         if (len(algorithms_choice)>0):
 
@@ -368,9 +368,7 @@ while (end==False):
                         print("{} with {} with k = {}".format(p_name, algorithm_choice, k))
                         method_to_call = getattr(pcn_final, algorithm_choice)
                         if type_choice == 'embeddings':
-                            
-                            labels = method_to_call(A, n_clusters=k, d=d, walk_len=walk_len, num_walks=num_walks)
-                            
+                            labels = method_to_call(A, n_clusters=k, d=d, beta=beta, walk_len=walk_len, num_walks=num_walks)
                         elif type_choice == 'spectral':
                             labels = method_to_call(A, n_clusters=k)
                             d=None

@@ -67,13 +67,9 @@ def pymol_plot(protein_path, output_path, algorithm_type, algorithm_name, k):
                 line="color "+colors[i]+", (resi "+ residue_num + " and chain "+ residue_chain + ")"
                 cmd.do(line)
     
-    if (not os.path.exists("{}{}{}Png".format(output_path, algorithm_name, add_slash_to_path))):
-        os.makedirs("{}{}{}Png".format(output_path, algorithm_name, add_slash_to_path))
     if (not os.path.exists("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))):
         os.makedirs("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))
         
-    cmd.do("capture")
-    cmd.do("save {}{}{}Png{}{}_{}_{}_{}{}.png".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, ncoms_or_k, k))          
     cmd.do("save {}{}{}Sessions{}{}_{}_{}_{}{}_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, ncoms_or_k, k))
     cmd.do("delete {}".format(protein))
 
@@ -108,17 +104,13 @@ def pymol_plot_chain(protein_path, output_path, algorithm_type, algorithm_name, 
                 print(residue + " " + colors[i])
                 line="color "+colors[i]+", (resi "+ residue_num + " and chain "+ residue_chain + ")"
                 cmd.do(line)
-    
-    if (not os.path.exists("{}{}{}Png".format(output_path, algorithm_name, add_slash_to_path))):
-        os.makedirs("{}{}{}Png".format(output_path, algorithm_name, add_slash_to_path))
+
     if (not os.path.exists("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))):
         os.makedirs("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))
     
     for chain in chains_to_delete:
         cmd.do("remove chain {}".format(chain))
     
-    cmd.do("capture")
-    cmd.do("save {}{}{}Png{}{}_{}_{}_{}{}_chain.png".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, ncoms_or_k, k))          
     cmd.do("save {}{}{}Sessions{}{}_{}_{}_{}{}_chain_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_type, algorithm_name, ncoms_or_k, k))
     cmd.do("delete {}".format(protein))
     
@@ -156,27 +148,20 @@ def pymol_plot_embeddings(protein_path, output_path, algorithm_type, algorithm_n
                 print(residue + " " + colors[i])
                 line="color "+colors[i]+", (resi "+ residue_num + " and chain "+ residue_chain + ")"
                 cmd.do(line)
-         
-    cmd.do("capture")
-    
-    if (not os.path.exists("{}{}{}Png".format(output_path, algorithm_name, add_slash_to_path))):
-        os.makedirs("{}{}{}Png".format(output_path, algorithm_name, add_slash_to_path))
+   
     if (not os.path.exists("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))):
         os.makedirs("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))
         
     if (beta is not None):
-        cmd.do("save {}{}{}Png{}{}_{}_d{}_beta{}_k{}.png".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name, d, beta, k))    
         cmd.do("save {}{}{}Sessions{}{}_{}_d{}_beta{}_k{}_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name, d, beta, k))
     elif ((num_walks is not None) and (walk_len is not None)):
-        cmd.do("save {}{}{}Png{}{}_{}_d{}_wl{}_nw{}_k{}.png".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name, d, walk_len, num_walks, k))    
         cmd.do("save {}{}{}Sessions{}{}_{}_d{}_wl{}_nw{}_k{}_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name, d, walk_len, num_walks, k))
     else:
-        cmd.do("save {}{}{}Png{}{}_{}_d{}_k{}.png".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name, d, k))   
         cmd.do("save {}{}{}Sessions{}{}_{}_d{}_k{}_session.pse".format(output_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name, d, k))
     
     cmd.do("delete {}".format(protein))
     
-def pymol_plot_centralities(centralities, protein_path, output_path, algorithm_name):
+def pymol_plot_centralities(output_path, centralities, protein_path, algorithm_name):
     
     cmd.do("delete {}".format("all"))
     cmd.do("load {}".format(protein_path))
@@ -198,13 +183,9 @@ def pymol_plot_centralities(centralities, protein_path, output_path, algorithm_n
     cmd.do("spectrum b, rainbow")
     cmd.do("ramp_new colorbar, none, [{}, {}], rainbow".format(min(centralities.values()), max(centralities.values())))
     
-    if (not os.path.exists("{}Centralities{}{}{}Png".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path))):
-        os.makedirs("{}Centralities{}{}{}Png".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path))
     if (not os.path.exists("{}Centralities{}{}{}Sessions".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path))):
         os.makedirs("{}Centralities{}{}{}Sessions".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path))
         
-    cmd.do("capture")
-    cmd.do("save {}Centralities{}{}{}Png{}{}_{}.png".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name))          
     cmd.do("save {}Centralities{}{}{}Sessions{}{}_{}_session.pse".format(output_path, add_slash_to_path, algorithm_name, add_slash_to_path, add_slash_to_path, protein_name, algorithm_name))
 
 
@@ -233,4 +214,4 @@ def pymol_plot_part_coefs(part_coefs, protein_path, output_path, algorithm_name,
     if (not os.path.exists("{}Part_coefs_Sessions".format(output_path))):
         os.makedirs("{}Part_coefs_Sessions".format(output_path))
   
-    cmd.do("save {}Part_coefs_Sessions{}{}_part_coefs_{}{}_session.pse".format(output_path, add_slash_to_path, protein_name, algorithm_name, k))
+    cmd.do("save {}Part_coefs_Sessions{}{}_part_coefs_{}_k{}_session.pse".format(output_path, add_slash_to_path, protein_name, algorithm_name, k))

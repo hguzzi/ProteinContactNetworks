@@ -241,6 +241,18 @@ def adjacent_matrix(output_path, residues, p, min_=4, max_=8):
     
     return adj
 
+def save_centralities(output_path, centralities, p_name, method = None):
+
+    centrality_output_path = "{}Centralities{}{}{}Txt{}".format(output_path, add_slash_to_path, method, add_slash_to_path, add_slash_to_path)
+    
+    if (not os.path.exists(centrality_output_path)):
+    
+        os.makedirs(centrality_output_path)
+    
+    f = open("{}{}_{}.txt".format(centrality_output_path, p_name, method),"w")
+    f.write(str(centralities))
+    f.close()
+ 
 #SAVE LABELS
 def save_labels(output_path, labels, residue_names, p_name, method=None, d=None, beta=None, walk_len=None, num_walks=None):
 
@@ -257,7 +269,7 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
     supported_methods_communities = ["louvain", "leiden", "walktrap", "asyn_fluidc", "greedy_modularity", "infomap", "spinglass"]
     
     if platform == "win32":
-        
+        # Windows...
         supported_methods_communities.remove("infomap")
 
     if ((method in supported_methods_clustering)|(method in supported_methods_communities)|(method in supported_methods_embeddings)):
@@ -701,113 +713,113 @@ def skl_spectral_clustering(A, n_clusters = None):
 #spectral clustering 
 def unnorm_hsc(A, n_clusters = None, norm=False, embedding=None, d=None, beta=None, walk_len=None, num_walks=None):
 
-    labels = hardSpectralClustering(A, n_clusters, norm)
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
 def norm_hsc(A, n_clusters = None, norm=True, embedding=None, d=None, beta=None, walk_len=None, num_walks=None):
 
-    labels = hardSpectralClustering(A, n_clusters, norm)
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
 def unnorm_ssc(A, n_clusters = None, norm=False, embedding=None, d=None, beta=None, walk_len=None, num_walks=None):
 
-    labels = softSpectralClustering(A, n_clusters, norm)
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
 
 def norm_ssc(A, n_clusters = None, norm=True, embedding=None, d=None, beta=None, walk_len=None, num_walks=None):
 
-    labels = softSpectralClustering(A, n_clusters, norm)
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
 
 #EMBEDDINGS
 def unnorm_hsc_hope(A, n_clusters = None, norm=False, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
 
-    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta)
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
 def norm_hsc_hope(A, n_clusters = None, norm=True, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
 
-    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta)
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
 #NEW   
 def unnorm_hsc_node2vec(A, n_clusters = None, norm=False, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
 
-    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks)
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks, walk_len, num_walks)
     return labels
     
 def norm_hsc_node2vec(A, n_clusters = None, norm=True, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
 
-    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks)
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks, walk_len, num_walks)
 
 def unnorm_ssc_node2vec(A, n_clusters = None, norm=False, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
 
-    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks)
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks, walk_len, num_walks)
     return labels
     
 def norm_ssc_node2vec(A, n_clusters = None, norm=True, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
 
-    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks)
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks, walk_len, num_walks)
     return labels
 
 def hsc_shimalik_node2vec(A, n_clusters = None, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
 
-    labels = hsc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks)
+    labels = hsc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks, walk_len, num_walks)
     return labels
     
 def ssc_shimalik_node2vec(A, n_clusters = None, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
 
-    labels = ssc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks)
+    labels = ssc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks, walk_len, num_walks)
     return labels
 #END
 def unnorm_ssc_hope(A, n_clusters = None, norm=False, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
 
-    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta)
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
 def norm_ssc_hope(A, n_clusters = None, norm=True, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
 
-    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta)
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
 def hsc_shimalik_hope(A, n_clusters = None, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
 
-    labels = hsc_shimalik(A, n_clusters, embedding, d, beta)
+    labels = hsc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks)
     return labels
     
 def ssc_shimalik_hope(A, n_clusters = None, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
 
-    labels = ssc_shimalik(A, n_clusters, embedding, d, beta)
+    labels = ssc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks)
     return labels
 
 def unnorm_hsc_laplacianeigenmaps(A, n_clusters = None, norm=False, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
 
-    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d)
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
 def norm_hsc_laplacianeigenmaps(A, n_clusters = None, norm=True, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
 
-    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d)
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
 def unnorm_ssc_laplacianeigenmaps(A, n_clusters = None, norm=False, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
 
-    labels = softSpectralClustering(A, n_clusters, norm, embedding, d)
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
 def norm_ssc_laplacianeigenmaps(A, n_clusters = None, norm=True, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
 
 
-    labels = softSpectralClustering(A, n_clusters, norm, embedding, d)
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
 def hsc_shimalik_laplacianeigenmaps(A, n_clusters = None, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
 
-    labels = hsc_shimalik(A, n_clusters, embedding, d)
+    labels = hsc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks)
     return labels
     
 def ssc_shimalik_laplacianeigenmaps(A, n_clusters = None, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
 
-    labels = ssc_shimalik(A, n_clusters, embedding, d)
+    labels = ssc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks)
     return labels
     
 #CENTRALITY MEASURES
@@ -880,7 +892,6 @@ def closeness(G, p, residue_names_1, n):
         
     return dict_node_centrality
 
-
 #p score and z score coefs
 def participation_coefs(G, clusters, residue_names_1):
 
@@ -900,7 +911,7 @@ def participation_coefs(G, clusters, residue_names_1):
 
         k_s[i] = k_si
         P[residue_names_1[i]] = 1 - (k_s[i]/k_i)**2
-        
+    
     return P
 
 def z_score(G, clusters, residue_names_1):
@@ -934,7 +945,6 @@ def z_score(G, clusters, residue_names_1):
     return z
 
 """
-
 def plot_z_p(G, clusters):
     
     part_coefs = partecipation_coefs(G, clusters)
@@ -942,7 +952,7 @@ def plot_z_p(G, clusters):
     plt.scatter(np.array(list(part_coefs.values())).astype(float), np.array(list(z_scores.values())).astype(float), facecolors='none', edgecolors='b')
     plt.xlabel("part_coefs")
     plt.ylabel("z_scores")
-
+    
 def color_map_clustering(clusters):
     
     n = len(clusters)
@@ -956,8 +966,8 @@ def color_map_clustering(clusters):
                 
     print(cluster_map)
     plt.figure(figsize=(8,8))
-    plt.matshow(cluster_map, vmin=0, vmax=max(clusters)+1, cmap='cividis', fignum=1)
+    plt.matshow(cluster_map, vmin=0, vmax=max(clusters)+1, cmap='inferno', fignum=1)
     plt.legend(labels=labels_unique)
     plt.show()
-    
+
 """
