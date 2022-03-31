@@ -45,8 +45,10 @@ def pymol_plot(protein_path, output_path, algorithm_type, algorithm_name, k):
     
     if (algorithm_type == "Communities"):
         ncoms_or_k = "ncoms"
+        sele_name = "Community"
     else:
         ncoms_or_k = "k"
+        sele_name = "Cluster" 
     
     filename = output_path+"{}{}{}{}{}_{}_{}_{}{}.txt".format(algorithm_name, add_slash_to_path, algorithm_type, add_slash_to_path, protein_name, algorithm_type, algorithm_name, ncoms_or_k, k)
     f = open(filename, "r")
@@ -66,6 +68,7 @@ def pymol_plot(protein_path, output_path, algorithm_type, algorithm_name, k):
                 print(residue + " " + colors[i])
                 line="color "+colors[i]+", (resi "+ residue_num + " and chain "+ residue_chain + ")"
                 cmd.do(line)
+                cmd.do("sele {}, resi {} and chain {}, 1, 0, 1".format("{}{}_{}".format(sele_name, label, colors[i]), residue_num, residue_chain))
     
     if (not os.path.exists("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))):
         os.makedirs("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))
@@ -148,6 +151,7 @@ def pymol_plot_embeddings(protein_path, output_path, algorithm_type, algorithm_n
                 print(residue + " " + colors[i])
                 line="color "+colors[i]+", (resi "+ residue_num + " and chain "+ residue_chain + ")"
                 cmd.do(line)
+                cmd.do("sele {}, resi {} and chain {}, 1, 0, 1".format("Cluster{}_{}".format(label, colors[i]), residue_num, residue_chain))
    
     if (not os.path.exists("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))):
         os.makedirs("{}{}{}Sessions".format(output_path, algorithm_name, add_slash_to_path))
@@ -174,7 +178,7 @@ def pymol_plot_centralities(output_path, centralities, protein_path, algorithm_n
     cmd.do("remove hetatm")
     
     for (residue, cent) in (centralities.items()):
-        residue_n, residue_chain = residue.split()
+        residue_n, residue_chain = residue.split(" ")
         residue_name = residue_n[:3]
         residue_num = residue_n[3:]
         line="alter (resi "+ str(residue_num) + " and chain "+ residue_chain + "), b = "+ str(cent)
