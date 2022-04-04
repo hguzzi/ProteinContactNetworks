@@ -171,7 +171,11 @@ def getResidueDistance(atoms):
      
 def associateResidueName(residues):
     """
-    
+    Associate the protein residues names to the networkx node ID.
+    Parameters: 
+        residues, np.array, contains the list of residues names
+    Returns:
+        dict_residue_name: dictionary {residue_nxID: residue_name}
     """
     dict_residue_name = dict()
     for i in range(residues.shape[0]):
@@ -180,7 +184,7 @@ def associateResidueName(residues):
  
 def getResiduesSequence(pbdFilePath):
     """
-    Read the sequence of amino acids from the pdb file.
+    Read the amino acids sequence from the pdb file.
     Parameters: 
         pdbFilePath: string, is the complete PDB file path to read.
     Returns:
@@ -270,10 +274,10 @@ def save_centralities(output_path, centralities, p_name, method = None):
     """
     Save the node centralities as txt file in the output directory.
     Paramters: 
-        output_path:
-        centralities:
-        p_name: 
-        method:
+        output_path: string, path to use when save the centralities.
+        centralities: dict {node: centrality}, node 'method' centralities. 
+        p_name: string, pdb code of the protein to study.
+        method: string, the centrality measure algorithms used. 
     Returns: None
     """
     
@@ -289,7 +293,21 @@ def save_centralities(output_path, centralities, p_name, method = None):
  
 
 def save_labels(output_path, labels, residue_names, p_name, method=None, d=None, beta=None, walk_len=None, num_walks=None):
-
+    """
+    Save the node centralities as txt file in the output directory.
+    Paramters: 
+        output_path: string, path to use when save communities/clusters.
+        labels : np.array, list of clusters/communities.
+        residue_names: np.array, list of the residues names of the protein.
+        p_name: string, pdb code of the protein to study.
+        method: string, the spectral clustering / embedding+clustering / community detection algorithm used to create the partition. 
+        d: int, default None, dimension for the embedding
+        beta: float, default None, decay factor for HOPE embedding
+        walk_len: int, default None, length of the random walks used in node2vec embedding.
+        num_walks: int, default None, number of random walks each node computed in node2vec embedding.
+    Returns: 
+        dict_node_cluster_1: dict {node: label}, 'method' extracted clusters/communities. 
+    """
     supported_methods_clustering = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik", "skl_spectral_clustering"]
     supported_methods_embeddings =  [
                                    "unnorm_ssc_hope", "norm_ssc_hope", "unnorm_hsc_hope", "norm_hsc_hope", "hsc_shimalik_hope", "ssc_shimalik_hope",
@@ -410,9 +428,14 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
         
 def save_part_coef(output_path, part_coefs, p_name, method, k):
     """
-    Description
-    Parameters:
-    Returns:
+    Save the nodes partecipation coefficients as txt file in the output directory.
+    Paramters: 
+        output_path: string, path to use when save the node partecipation coefficients.
+        part_coefs: dict {node: part_coef}, node partecipation coefficient. 
+        p_name: string, pdb code of the protein to study.
+        method: string, the spectral clustering/ embedding+clusterin / community detection algorithm used to create the partition. 
+        k: int, number of clusters/communities extracted.
+    Returns: None
     """
     method_output_path = "{}{}{}Part_coefs_txt".format(output_path, method, add_slash_to_path)
     if (not os.path.exists(method_output_path)):
@@ -1109,7 +1132,7 @@ def betweenness(G, residue_names_1, n=10):
     Compute the betweenness centrality of the nodes of the graph using the networkx implementation.
     Parameters:
         G: networkx.graph, the graph (the PCN) you want to compute the betweenness centrality.
-        residue_names_1: 
+        residue_names_1: np.array, list of the residues names of the protein.
         n: int, default equals to 10, number of best nodes with highest centrality to print.
     Returns:
         centralities: dict {node: P_coef[node]}, for each node is linked its betweenness centrality
@@ -1134,7 +1157,7 @@ def eigenvector_c(G, residue_names_1, n=10):
     Compute the eigenvector centrality of the nodes of the graph using the networkx implementation.
     Parameters:
         G: networkx.graph, the graph (the PCN) you want to compute the eigenvector centrality.
-        residue_names_1: 
+        residue_names_1: np.array, list of the residues names of the protein.
         n: int, default equals to 10, number of best nodes with highest centrality to print.
     Returns:
         centralities: dict {node: eigenvector_centrality[node]}, for each node is linked its eigenvector centrality
@@ -1159,7 +1182,7 @@ def degree_c(G, residue_names_1, n=10):
     Compute the degree centrality of the nodes of the graph using the networkx implementation.
     Parameters:
         G: networkx.graph, the graph (the PCN) you want to compute the degree centrality.
-        residue_names_1: 
+        residue_names_1: np.array, list of the residues names of the protein.
         n: int, default equals to 10, number of best nodes with highest centrality to print.
     Returns:
         centralities: dict {node: degree_centrality[node]}, for each node is linked its degree centrality
@@ -1184,7 +1207,7 @@ def closeness(G, residue_names_1, n=10):
     Compute the closeness centrality of the nodes of the graph using the networkx implementation.
     Parameters:
         G: networkx.graph, the graph (the PCN) you want to compute the closeness centrality.
-        residue_names_1: 
+        residue_names_1: np.array, list of the residues names of the protein.
         n: int, default equals to 10, number of best nodes with highest centrality to print.
     Returns:
         centralities: dict {node: closeness_centrality[node]}, for each node is linked its closeness centrality
@@ -1205,13 +1228,13 @@ def closeness(G, residue_names_1, n=10):
     return dict_node_centrality
 
 
-def participation_coefs(G, clusters, residue_names_1):
+def participation_coefs(G, labels, residue_names_1):
     """
     Compute the participation coefficient of the nodes of the graph given a partition.
     Parameters:
         G: networkx.graph, the graph (the PCN) you want to compute the closeness centrality.
-        clusters: 
-        residue_names_1: 
+        labels: np.array, extracted clusters/communities
+        residue_names_1: np.array, list of the residues names of the protein.
     Returns:
         P: dict {node: P_coef[node]}, for each node is linked its participation coefficient 
     """
@@ -1226,7 +1249,7 @@ def participation_coefs(G, clusters, residue_names_1):
   
         for j in range(n):
             if (i!=j):
-                if ((clusters[i] == clusters[j]) and (A[i,j]!=0)):#se il nodo i e il nodo j sono dello stesso cluster e c'è un arco che li connette
+                if ((labels[i] == labels[j]) and (A[i,j]!=0)):#se il nodo i e il nodo j sono dello stesso cluster e c'è un arco che li connette
                     k_si += A[i,j]
 
         k_s[i] = k_si
@@ -1234,13 +1257,17 @@ def participation_coefs(G, clusters, residue_names_1):
     
     return P
 
-def z_score(G, clusters, residue_names_1):
+#END
+
+
+#HERE WE FOUND NOT USED ALGORITHMS
+def z_score(G, labels, residue_names_1):
     """
     Compute the z score of the nodes of the graph.
     Parameters:
         G: networkx.graph, the graph (the PCN) you want to compute the closeness centrality.
-        clusters: 
-        residue_names_1: 
+        labels: np.array, extracted clusters/communities
+        residue_names_1: np.array, list of the residues names of the protein.
     Returns:
         z_s: dict {node: z_score[node]}, for each node is linked its z-score 
     """

@@ -65,12 +65,12 @@ def compute_adjs():
     pcn_final.checkIfFilesExists(pdb_list, "pdb", proteins_path)  #
     choice_fr.destroy()
     
+    comp_adj_fr.pack()
     for protein in proteins_list:
                 
         computing_A_label = tk.Label(comp_adj_fr, text="computing adjacency matrix for protein {}... (This may take time)".format(protein))
-        comp_adj_fr.pack()
         computing_A_label.pack()
-    
+             
         protein_path = proteins_path+protein+".pdb"
         atoms = pcn_final.readPDBFile(protein_path) 
         residues = pcn_final.getResidueDistance(atoms) 
@@ -91,11 +91,13 @@ def read_adjs():
     choice_fr.destroy()
     proteins_tk.destroy()
     
+    pcn_final.checkIfFilesExists(pdb_list, "adj", protein_path, adj_filespath)
+    comp_adj_fr.pack()
     for protein in proteins_list:
         
         reading_A_label = tk.Label(comp_adj_fr, text="reading adjacency matrix for protein {}... ".format(protein))
-        comp_adj_fr.pack()
         reading_A_label.pack()
+        
         adj_matrixs[protein] = pcn_final.read_adj_mat(adj_filespath, protein, min_, max_)
     
     userAnalysisChoice()
@@ -208,7 +210,6 @@ def embeddingClustering():
 
 def computeOrReadPCN():
     
-    print(adj_filespath)
     if choiceVar.get() == 'adj':
         read_adjs()
     else: #=='pcn'
@@ -250,8 +251,8 @@ def spectralClusteringRun():
         #use max eigengap method to compute the best k to use
         pass
     elif k_choice.split(','):    
-        [ks.append(k for k in k_choice.replace(" ","").split(","))] #strip space
-
+        ks = [int(k) for k in k_choice.replace(" ","").split(",")] #strip space
+    print(ks)
     parameters_fr.destroy()
     for protein, adj in adj_matrixs.items():
         G = nx.from_numpy_matrix(adj)
@@ -283,7 +284,7 @@ def communityDetectionRun():
     
     k_choice = str(ks_tk.get())
     if k_choice.split(','):    
-        [ks.append(k for k in k_choice.replace(" ","").split(","))] #strip space
+        ks = [int(k) for k in k_choice.replace(" ","").split(",")] #strip space
     parameters_fr.destroy()
         
     for protein, adj in adj_matrixs.items():
@@ -329,7 +330,8 @@ def embeddingClusteringRun():
     
     k_choice = str(ks_tk.get())
     if k_choice.split(','):    
-        [ks.append(k for k in k_choice.replace(" ","").split(","))] #strip space
+        ks = [int(k) for k in k_choice.replace(" ","").split(",")] #strip space
+    
     d = int(d_tk.get())
     beta = float(beta_tk.get())
     num_walks = int(num_walks_tk.get())
