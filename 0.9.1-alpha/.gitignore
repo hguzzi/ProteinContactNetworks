@@ -1,8 +1,10 @@
 #ignore pycache directory
 __pycache__/
+build/
+dist/
 
 #ignore the config file
 *.ini
 
 #ignore file
-exctract_chain_try.py
+pcn_gui.spec
