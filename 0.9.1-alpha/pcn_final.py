@@ -99,8 +99,8 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None):
             for filename in not_existing_adj_files:
                 filename_splitted = (filename.split(".txt"))[0].split("_") #adj = 6vxx_adj_mat_min_max.txt
                 p_name = filename_splitted[0]   
-                min_ = float (filename_splitted[4]) #3?
-                max_ = float (filename_splitted[5]) #4?
+                min_ = float (filename_splitted[4]) 
+                max_ = float (filename_splitted[5]) 
                 print(("protein {} adj matrix missing...").format(p_name))
                 protein_path = proteins_path+p_name+".pdb"
                 atoms = readPDBFile(protein_path)

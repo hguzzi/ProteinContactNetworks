@@ -9,6 +9,12 @@ Choose the proteins you want to study and insert the PDB codes: for each protein
     3. Supported Embeddings methods: HOPE, Laplacian Eigenmaps, Node2Vec.
   
 The outputs (node centralities/communities/clusters) will be plotted on the protein structure using the software PyMOL.
+
+Authors: Lomoio Ugo
+         Pietro Hiram Guzzi
+         Ferrarelli Giuseppe
+         
+License: CC0-1.0
 """
 
 import os
@@ -20,7 +26,7 @@ import pcn_pymol_scripts
 from sys import platform
 import configparser
 
-print("Protein Contact Network Miner 0.0.9b ")
+print("Protein Contact Network Miner, version 0.9.1 alpha")
 
 print("Software Available under CC-BY Licence ")
 
@@ -492,9 +498,8 @@ while (end==False): #for multiple analysis
                         #for each number of communities in the list of numbers of communities to try
                         for k in ks:
                             labels = method_to_call(G, k) #call the method
-                            n_coms = int( max(labels) + 1) 
                             pcn_final.save_labels(output_path, labels, residue_names, p_name,  method=algorithm_choice) #save the communities as txt file
-                            pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Communities", algorithm_choice, n_coms) #plot and save the communities with pymol
+                            pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Communities", algorithm_choice, k) #plot and save the communities with pymol
                             
                             #if the user wants to compute the partecipation coefficients
                             if (plot_p == 0): 

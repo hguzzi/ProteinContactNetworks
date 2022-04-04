@@ -26,6 +26,8 @@ then
 	pip install pytz
 	pip install python-dateutil
 	pip install git+https://github.com/eliorc/node2vec.git
-	
+	pip install pyinstaller 
+
+	pyinstaller pcn_gui.py
 	
 fi

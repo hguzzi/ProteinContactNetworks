@@ -19,5 +19,7 @@ call conda install -c schrodinger pymol
 call pip install pytz
 call pip install python-dateutil
 call pip install git+https://github.com/eliorc/node2vec.git
+call pip install pyinstaller 
 
+call pyinstaller pcn_gui.py
 pause
