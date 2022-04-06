@@ -8,3 +8,4 @@ dist/
 
 #ignore file
 pcn_gui.spec
+pcn_gui_old.py

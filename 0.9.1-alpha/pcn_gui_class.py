@@ -1,0 +1,805 @@
+import os
+import networkx as nx
+import pcn_final
+import numpy as np
+from scipy.linalg import eigh
+import pcn_pymol_scripts
+from sys import platform
+import configparser
+import tkinter as tk
+from tkinter import ttk
+
+
+class PCNMinerGUI():
+
+    def __init__(self, master):
+        
+        self.supported_algorithms_clustering = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik", "skl_spectral_clustering"]
+        self.supported_algorithms_embeddings = [
+                                       "unnorm_ssc_hope", "norm_ssc_hope", "unnorm_hsc_hope", "norm_hsc_hope", "hsc_shimalik_hope", "ssc_shimalik_hope",
+                                       
+                                       "unnorm_ssc_laplacianeigenmaps", "norm_ssc_laplacianeigenmaps", "unnorm_hsc_laplacianeigenmaps", "norm_hsc_laplacianeigenmaps",
+                                       "hsc_shimalik_laplacianeigenmaps", "ssc_shimalik_laplacianeigenmaps", 
+                                       
+                                       "unnorm_ssc_node2vec", "norm_ssc_node2vec", "unnorm_hsc_node2vec", "norm_hsc_node2vec", "hsc_shimalik_node2vec", 
+                                       "ssc_shimalik_node2vec"
+                                       ]
+        self.supported_algorithms_communities = ["louvain", "leiden", "walktrap", "asyn_fluidc", "greedy_modularity", "infomap", "spinglass"]
+        self.supported_centralities_measures = ["closeness", "eigenvector_c", "betweenness", "degree_c"]
+    
+        if platform == "linux" or platform == "linux2":
+            # linux
+            self.add_slash_to_path = '/'                    #add_slash_to_path is path separator 
+            os.system('clear')
+        elif platform == "darwin":
+            # OS X
+            self.add_slash_to_path = '/'
+            os.system('clear')
+        elif platform == "win32":
+            # Windows...
+            self.add_slash_to_path = '\\'
+            self.supported_algorithms_communities.remove("infomap")
+        
+        self.output_path = ""
+        self.proteins_path = ""
+        self.adj_filespath = ""
+        self.proteins_list = []
+        self.proteins = ""
+        self.adj_matrixs = dict() # {pdb: adj} 
+        self.proteins_residue_names = dict() #{pdb: residue_names}
+        self.min_ = 4.0
+        self.max_ = 8.0
+        self.previous_scene = "select_proteins"
+        self.isback = False
+        self.isreset = False
+        
+        self.window = master
+        self.window.title("PCN-Miner 0.9.1-alpha")
+        self.window.rowconfigure(0, minsize=800, weight=1)
+        self.window.columnconfigure(1, minsize=800, weight=1)
+        self.window.geometry('600x600+50+50')
+
+        self.label_program_name = tk.Label(self.window, text = 'PCN-Miner 0.9.1-alpha', fg = 'black',
+                         font = (None, 30), height = 2)
+        self.label_program_name.pack(side = tk.TOP)
+        #window.iconbitmap('./assets/pythontutorial.ico') #icon
+
+        welcome = tk.Label(self.window, text="Protein Contact Network Miner 0.9.1-alpha \n Software Available under CC-BY Licence \n Free for Academic Usage ",
+                           foreground="black")  
+        welcome.pack()
+        
+        self.choiceVar = tk.StringVar()
+        
+        self.choice_fr = tk.Frame(self.window)
+        self.analysis_fr = tk.Frame(self.window)
+        self.cm_fr = tk.Frame(self.window)
+        self.sc_fr = tk.Frame(self.window)
+        self.cd_fr = tk.Frame(self.window)
+        self.ec_fr = tk.Frame(self.window)
+        self.comp_adj_fr = tk.Frame(self.window)
+        self.parameters_fr = tk.Frame(self.window)
+        self.run_fr = tk.Frame(self.window)
+        self.results_fr = tk.Frame(self.window)
+
+        self.proteins_tk = tk.Entry(self.choice_fr, text='PDBs codes:', width=100)
+        self.min_tk = tk.Entry(self.choice_fr, text='Min threshold:')
+        self.max_tk = tk.Entry(self.choice_fr, text='Max threshold:')
+        
+        self.ks_tk = tk.Entry(self.parameters_fr, text="Number of clusters for clustering", width=100)
+        self.d_tk = tk.Entry(self.parameters_fr, text="d-dimensional embedding: ")
+        self.beta_tk = tk.Entry(self.parameters_fr, text="decay factor HOPE embedding: ")
+        self.num_walks_tk = tk.Entry(self.parameters_fr, text="Random walk lenght: ")
+        self.walk_len_tk = tk.Entry(self.parameters_fr, text="Number of walks per node: ")
+        
+        self.button_bg = "cyan"
+        self.button_fg = "black"
+
+        self.mb_cm = tk.Menubutton(self.cm_fr, text="Click here and Choose at least one centrality measure algorithm to use: ", bg = self.button_bg, fg = self.button_fg)
+        self.mb_ec = tk.Menubutton(self.ec_fr, text="Click here and Choose at least one embedding+clustering algorithm to use: ", bg = self.button_bg, fg = self.button_fg)
+        self.mb_sc = tk.Menubutton(self.sc_fr, text="Click here and Choose at least one spectral clustering algorithm to use: ", bg = self.button_bg, fg = self.button_fg)
+        self.mb_cd = tk.Menubutton(self.cd_fr, text="Click here and Choose at least one community detection algorithm to use: ", bg = self.button_bg, fg = self.button_fg)
+
+        self.checked = list()
+        
+        self.ks = list()
+        self.d = None
+        self.beta = None
+        self.num_walks = None
+        self.walk_len = None
+    
+        self.back_button = None
+        self.reset_button = None
+
+        self.initial_fr_button = tk.Frame(self.window)
+            
+        self.initial_button = tk.Button(
+                                    self.initial_fr_button,
+                                    text="Press this button to continue",
+                                    bg = self.button_bg,
+                                    fg = self.button_fg,
+                                    command = self.select_proteins
+                                  )
+
+        self.initial_button.pack()
+        self.initial_fr_button.pack()
+            
+    def userAnalysisChoice(self):
+                 
+        self.previous_scene = "select_proteins"
+        self.comp_adj_fr.pack_forget()
+        
+        if self.isback or self.isreset:
+           
+            self.analysis_fr = tk.Frame(self.window)
+     
+        proteins_to_analyze_tk = tk.Label(self.analysis_fr, text = "List of proteins to analyze: {}".format(str(self.proteins_list)))
+        proteins_to_analyze_tk.pack() 
+        method_analysis_tk = tk.Label(self.analysis_fr, text="Choose the method to use for the analysis of the PCNs: ")
+        method_analysis_tk.pack()
+        
+        sc_button = tk.Button(
+                            self.analysis_fr,
+                            text="Spectral Clustering",
+                            bg = self.button_bg,
+                            fg = self.button_fg,
+                            command = self.spectralClustering 
+                             )
+        sc_button.pack()                
+                
+        ec_button = tk.Button(
+                            self.analysis_fr,
+                            text="Embedding + Clustering",
+                            bg = self.button_bg,
+                            fg = self.button_fg,
+                            command = self.embeddingClustering 
+                             )
+        ec_button.pack() 
+             
+        cd_button = tk.Button(
+                            self.analysis_fr,
+                            text="Community Detection",
+                            bg = self.button_bg,
+                            fg = self.button_fg,
+                            command = self.communityDetection 
+                             )
+        cd_button.pack() 
+             
+        cm_button = tk.Button(
+                            self.analysis_fr,
+                            text="Centrality Analysis",
+                            bg = self.button_bg,
+                            fg = self.button_fg,
+                            command = self.centralityMeasure
+                             )
+              
+        cm_button.pack()
+
+        self.back_button = tk.Button(self.analysis_fr, text='Back', command = self.back, bg = self.button_bg, fg = self.button_fg)
+        self.reset_button = tk.Button(self.analysis_fr, text='Reset Analysis', command = self.reset, bg = self.button_bg, fg = self.button_fg) 
+        self.back_button.pack(side=tk.RIGHT)
+        self.reset_button.pack(side=tk.LEFT)         
+          
+        self.analysis_fr.pack()
+
+    def computeOrReadPCN(self):
+                
+        if self.choiceVar.get() == 'adj':
+            self.read_adjs()
+        else: #=='pcn'
+            self.compute_adjs()
+    
+    def compute_adjs(self):
+        
+        proteins = str(self.proteins_tk.get())
+        [self.proteins_list.append(protein.casefold()) for protein in proteins.replace(" ","").split(",") if protein.casefold() not in self.proteins_list] #strip space
+        self.min_ = float(str(self.min_tk.get()))
+        self.max_ = float(str(self.max_tk.get()))
+        
+        self.choice_fr.pack_forget()  
+        self.window.update()
+        
+        pdb_list = self.proteins_list.copy()
+        for i, protein in enumerate(pdb_list):
+            if (not protein.endswith('.pdb')):
+                pdb_list[i] = protein+'.pdb'
+        
+        pcn_final.checkIfFilesExists(pdb_list, "pdb", self.proteins_path)   
+        
+        for protein in self.proteins_list:
+                    
+            computing_A_label = tk.Label(self.comp_adj_fr, text="computing adjacency matrix for protein {}... (This may take time)".format(protein))    
+            computing_A_label.pack()
+            self.comp_adj_fr.pack()
+            self.window.update()
+            
+            protein_path = self.proteins_path+protein+".pdb"
+            atoms = pcn_final.readPDBFile(protein_path) 
+            residues = pcn_final.getResidueDistance(atoms) 
+            dict_residue_names = pcn_final.associateResidueName(residues)
+            self.proteins_residue_names[protein] = np.array(list (dict_residue_names.items()))              
+            
+            self.adj_matrixs[protein] = pcn_final.adjacent_matrix(self.output_path, residues, protein, self.min_, self.max_, self.comp_adj_fr, self.window)
+                    
+        self.userAnalysisChoice()
+            
+
+    def read_adjs(self):
+        
+        proteins = str(self.proteins_tk.get())
+        [self.proteins_list.append(protein.casefold()) for protein in proteins.replace(" ","").split(",") if protein.casefold() not in self.proteins_list] #strip space
+        self.min_ = float(str(self.min_tk.get()))
+        self.max_ = float(str(self.max_tk.get()))
+        
+        self.choice_fr.pack_forget()
+        self.window.update()
+        
+        adj_list = [protein.casefold()+"_adj_mat_{}_{}.txt".format(self.min_, self.max_) for protein in self.proteins_list]
+        pcn_final.checkIfFilesExists(adj_list, "adj", self.proteins_path, self.adj_filespath)
+        
+        for protein in self.proteins_list:
+            
+            protein_path = self.proteins_path+protein+".pdb"
+            atoms = pcn_final.readPDBFile(protein_path) 
+            residues = pcn_final.getResidueDistance(atoms) 
+            dict_residue_names = pcn_final.associateResidueName(residues)
+            self.proteins_residue_names[protein] = np.array(list (dict_residue_names.items()))              
+            
+            reading_A_label = tk.Label(self.comp_adj_fr, text="reading adjacency matrix for protein {}... ".format(protein))
+            reading_A_label.pack()
+            self.comp_adj_fr.pack()
+            self.window.update()
+            
+            self.adj_matrixs[protein] = pcn_final.read_adj_mat(self.adj_filespath, protein, self.min_, self.max_)
+
+        self.userAnalysisChoice()
+
+        
+    def centralityMeasure(self):
+                
+        self.previous_scene = "userAnalysisChoice"
+        if self.isback or self.isreset:
+            self.checked = list()
+            self.cm_fr = tk.Frame(self.window)
+            self.mb_cm = tk.Menubutton(self.cm_fr, text="Click here and Choose at least one centrality measure algorithm to use: ", bg = self.button_bg, fg = self.button_fg)
+        
+        self.analysis_fr.pack_forget()
+            
+        self.mb_cm.grid()
+        self.mb_cm.menu = tk.Menu(self.mb_cm)
+        self.mb_cm["menu"] = self.mb_cm.menu
+
+        for i, centralities_measure in enumerate(self.supported_centralities_measures):
+                
+            checked_tk = tk.BooleanVar()
+            self.mb_cm.menu.add_checkbutton(label = centralities_measure, onvalue = True, offvalue = False, variable = checked_tk)
+            self.checked.append(checked_tk)            
+                
+        run_button = tk.Button(self.cm_fr, text="Run", bg = self.button_bg, fg = self.button_fg, command=self.centralityMeasureRun)
+        self.back_button = tk.Button(self.cm_fr, text='Back', bg = self.button_bg, fg = self.button_fg, command = self.back)
+        self.reset_button = tk.Button(self.cm_fr, text='Reset Analysis', bg = self.button_bg, fg = self.button_fg, command = self.reset)
+            
+        self.cm_fr.pack()
+        self.mb_cm.pack()
+            
+        run_button.pack()
+        self.back_button.pack()
+        self.reset_button.pack()   
+
+    def spectralClustering(self):
+        
+        self.previous_scene = "userAnalysisChoice"
+        if self.isback or self.isreset:
+            self.checked = list()
+            self.sc_fr = tk.Frame(self.window)
+            self.parameters_fr = tk.Frame(self.window)
+            self.ks_tk = tk.Entry(self.parameters_fr, text="Number of clusters for clustering", width=100)
+            self.mb_sc = tk.Menubutton(self.sc_fr, text="Click here and Choose at least one spectral clustering algorithm to use: ", bg = self.button_bg, fg = self.button_fg)
+        
+        self.analysis_fr.pack_forget()
+            
+        self.mb_sc.grid()
+        self.mb_sc.menu = tk.Menu(self.mb_sc)
+        self.mb_sc["menu"] = self.mb_sc.menu
+          
+        for i, algorithm_clustering in enumerate(self.supported_algorithms_clustering):
+            checked_tk = tk.BooleanVar()
+            self.mb_sc.menu.add_checkbutton(label = algorithm_clustering, onvalue = True, offvalue = False, variable = checked_tk)
+            self.checked.append(checked_tk)            
+              
+        ks_insert_label = tk.Label(self.parameters_fr, text="Enter number of clusters for spectral clustering: Enter an int, a list of ints splitted with ',': ")
+        ks_insert_label.pack()
+        self.ks_tk.pack()
+        self.parameters_fr.pack()
+
+        run_button = tk.Button(self.sc_fr, text="Run", bg = self.button_bg, fg = self.button_fg, command=self.spectralClusteringRun)
+        self.back_button = tk.Button(self.sc_fr, text='Back', bg = self.button_bg, fg = self.button_fg, command = self.back)
+        self.reset_button = tk.Button(self.sc_fr, text='Reset Analysis', bg = self.button_bg, fg = self.button_fg, command = self.reset) 
+
+        self.sc_fr.pack()
+        self.mb_sc.pack()
+            
+        run_button.pack()
+        self.back_button.pack()
+        self.reset_button.pack()    
+        
+    def communityDetection(self):
+        
+        self.previous_scene = "userAnalysisChoice"
+        if self.isback or self.isreset:
+            
+            self.checked = list()
+            self.cd_fr = tk.Frame(self.window)
+            self.mb_cd = tk.Menubutton(self.cd_fr, text="Click here and Choose at least one community detection algorithm to use: ", bg = self.button_bg, fg = self.button_fg)
+            self.parameters_fr = tk.Frame(self.window)
+            self. ks_tk = tk.Entry(self.parameters_fr, text="Number of clusters for clustering", width=100)
+
+        self.analysis_fr.pack_forget()
+         
+        self.mb_cd.grid()
+        self.mb_cd.menu = tk.Menu(self.mb_cd)
+        self.mb_cd["menu"] = self.mb_cd.menu
+          
+        for i, algorithm_community in enumerate(self.supported_algorithms_communities):
+            checked_tk = tk.BooleanVar()
+            self.mb_cd.menu.add_checkbutton(label = algorithm_community, onvalue = True, offvalue = False, variable = checked_tk)
+            self.checked.append(checked_tk)            
+            
+        ks_insert_label = tk.Label(self.parameters_fr, text="Enter number of communities for Async FluidC algorithm: Enter an int or a list of ints splitted with ',': ")
+        ks_insert_label.pack()
+        self.ks_tk.pack()
+        self.parameters_fr.pack()
+              
+        run_button = tk.Button(self.cd_fr, text="Run", bg = self.button_bg, fg = self.button_fg, command = self.communityDetectionRun)
+        self.back_button = tk.Button(self.cd_fr, text='Back', bg = self.button_bg, fg = self.button_fg, command = self.back)
+        self.reset_button = tk.Button(self.cd_fr, text='Reset Analysis', bg = self.button_bg, fg = self.button_fg, command = self.reset)
+         
+        self.cd_fr.pack()
+        self.mb_cd.pack()
+         
+        run_button.pack()
+        self.back_button.pack()
+        self.reset_button.pack()   
+
+    def embeddingClustering(self):
+        
+        self.previous_scene = "userAnalysisChoice"
+
+        if self.isback or self.isreset:
+            
+            self.checked = list()
+            self.ec_fr = tk.Frame(self.window)
+            self.parameters_fr = tk.Frame(self.window)
+            self.ks_tk = tk.Entry(self.parameters_fr, text="Number of clusters for clustering", width=100)
+            self.d_tk = tk.Entry(self.parameters_fr, text="d-dimensional embedding: ")
+            self.beta_tk = tk.Entry(self.parameters_fr, text="decay factor HOPE embedding: ")
+            self.num_walks_tk = tk.Entry(self.parameters_fr, text="Random walk lenght: ")
+            self.walk_len_tk = tk.Entry(self.parameters_fr, text="Number of walks per node: ")
+            self.mb_ec = tk.Menubutton(self.ec_fr, text="Click here and Choose at least one embedding+clustering algorithm to use: ", bg = self.button_bg, fg = self.button_fg)
+
+        self.analysis_fr.pack_forget()
+        
+        self.mb_ec.grid()
+        self.mb_ec.menu = tk.Menu(self.mb_ec)
+        self.mb_ec["menu"] = self.mb_ec.menu
+
+        for i, algorithm_emb_clustering in enumerate(self.supported_algorithms_embeddings):
+            checked_tk = tk.BooleanVar()
+            self.mb_ec.menu.add_checkbutton(label = algorithm_emb_clustering, onvalue = True, offvalue = False, variable = checked_tk)
+            self.checked.append(checked_tk)  
+                      
+        ks_insert_label = tk.Label(self.parameters_fr, text="Enter number of clusters for embedding + clustering algorithm: Enter an int or a list of ints splitted with ',': ")
+        ks_insert_label.pack()
+        self.ks_tk.pack()
+                
+        d_insert_label = tk.Label(self.parameters_fr, text=" Enter d parameter for d-dimensional embedding: ")
+        d_insert_label.pack()
+        self.d_tk.pack()
+           
+        beta_insert_label = tk.Label(self.parameters_fr, text="Enter beta parameter for HOPE embedding: ")
+        beta_insert_label.pack()
+        self.beta_tk.pack()
+                
+        num_walks_insert_label = tk.Label(self.parameters_fr, text="Enter the lenght of each random walk: ")
+        num_walks_insert_label.pack()
+        self.num_walks_tk.pack()
+         
+        walk_len_insert_label = tk.Label(self.parameters_fr, text="Enter the number of walks per node: ")
+        walk_len_insert_label.pack()
+        self.walk_len_tk.pack()
+        
+        self.parameters_fr.pack()
+            
+        run_button = tk.Button(self.ec_fr, text="Run", bg = self.button_bg, fg = self.button_fg, command = self.embeddingClusteringRun)
+        self.back_button = tk.Button(self.ec_fr, text='Back', bg = self.button_bg, fg = self.button_fg, command = self.back)
+        self.reset_button = tk.Button(self.ec_fr, text='Reset Analysis', bg = self.button_bg, fg = self.button_fg, command = self.reset)
+              
+        self.ec_fr.pack()
+        self.mb_ec.pack()
+        run_button.pack()
+        self.back_button.pack()
+        self.reset_button.pack()   
+            
+    def centralityMeasureRun(self):
+        
+        cm_touse = []
+        
+        for i, check_button in enumerate(self.checked):
+            if check_button.get(): #checked
+                cm_touse.append(self.supported_centralities_measures[i])
+                
+        filepaths = []
+        self.cm_fr.pack_forget()
+        for protein, adj in self.adj_matrixs.items():
+            
+            protein_path = self.proteins_path+protein+".pdb"
+            G = nx.from_numpy_matrix(adj)  
+            residue_names = self.proteins_residue_names[protein]
+            residue_names_1 = np.array(residue_names[:, 1], dtype = str)  
+            self.run_fr.pack()
+            for centrality_choice in cm_touse:
+                
+                method_to_call = getattr(pcn_final, centrality_choice) 
+
+                compute_tk = tk.Label(self.run_fr, text="Compute {} node centrality for protein {}...".format(centrality_choice, protein)) 
+                compute_tk.pack()
+                self.window.update()
+                centrality_measures = method_to_call(G, residue_names_1)#call the supported method from the pcn_final file
+                
+                pcn_final.save_centralities(self.output_path, centrality_measures, protein, centrality_choice) #save a txt file 
+
+                plot_tk = tk.Label(self.run_fr, text="Plot {} node centrality for protein {}".format(centrality_choice, protein))
+                plot_tk.pack()
+                self.window.update()
+                pcn_pymol_scripts.pymol_plot_centralities(self.output_path, centrality_measures, protein_path, centrality_choice, self.run_fr, self.window) #plot and save centralities with pymol
+                filepath = "{}Centralities{}{}{}Sessions{}{}_{}_session.pse".format(self.output_path, self.add_slash_to_path, centrality_choice, self.add_slash_to_path, self.add_slash_to_path, protein, centrality_choice)
+                filepaths.append(filepath)
+                
+        self.showResults(filepaths)
+        
+    def spectralClusteringRun(self):
+
+        sc_touse = []
+        
+        for i, check_button in enumerate(self.checked):
+            if check_button.get(): #checked
+                sc_touse.append(self.supported_algorithms_clustering[i])        
+        self.sc_fr.pack_forget()
+        
+        k_choice = str(self.ks_tk.get())
+        if k_choice == 'best_k':
+            #use max eigengap method to compute the best k to use
+            pass
+        elif k_choice.split(','):    
+            self.ks = [int(k) for k in k_choice.replace(" ","").split(",")] #strip space
+      
+        filepaths = []
+        self.parameters_fr.pack_forget()
+        self.run_fr.pack()
+        for protein, adj in self.adj_matrixs.items():
+            G = nx.from_numpy_matrix(adj)
+            protein_path = self.proteins_path+protein+".pdb"
+            residue_names = self.proteins_residue_names[protein]
+            residue_names_1 = np.array(residue_names[:, 1], dtype = str)
+            for algorithm_choice in sc_touse:
+              
+                for k in self.ks:
+                    
+                    method_to_call = getattr(pcn_final, algorithm_choice)
+                    
+                    compute_tk = tk.Label(self.run_fr, text="Compute {} spectral clustering with k = {} for protein {}...".format(algorithm_choice, k, protein)) 
+                    compute_tk.pack()
+                    self.window.update()
+                    labels = method_to_call(adj, n_clusters=k)
+                    pcn_final.save_labels(self.output_path, labels, residue_names, protein, algorithm_choice, self.d, self.beta, self.walk_len, self.num_walks)
+                    
+                    plot_tk = tk.Label(self.run_fr, text="Plot {} spectral clustering with k = {} for protein {}...".format(algorithm_choice, k, protein))
+                    plot_tk.pack()
+                    self.window.update()
+                    pcn_pymol_scripts.pymol_plot(protein_path, self.output_path, "Clusters", algorithm_choice, k, self.run_fr, self.window)
+                    filepath = ""
+                    filepaths.append(filepath)
+                    
+                    plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {} spectral clustering and k = {} for protein {}...".format(algorithm_choice, k, protein))
+                    plot_p_tk.pack()
+                    self.window.update()
+                    p = pcn_final.participation_coefs(G, labels, residue_names_1)
+                    pcn_final.save_part_coef(self.output_path, p, protein, algorithm_choice, k)
+                    output_path_p = "{}{}{}{}".format(self.output_path, self.add_slash_to_path, algorithm_choice, self.add_slash_to_path)
+                    pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, k, self.run_fr, self.window)
+                    filepath_p = "{}Part_coefs_Sessions{}{}_part_coefs_{}_k{}_session.pse".format(output_path_p, self.add_slash_to_path, protein, algorithm_choice, k)
+                    filepaths.append(filepath_p)
+                    
+        self.showResults(filepaths)
+        
+    def communityDetectionRun(self):
+        
+        cd_touse = []
+        for i, check_button in enumerate(self.checked):
+            if check_button.get(): #checked
+                cd_touse.append(self.supported_algorithms_communities[i])
+        self.cd_fr.pack_forget()
+        
+        if "asyn_fluidc" in cd_touse:
+            k_choice = str(self.ks_tk.get())
+            if k_choice.split(','):    
+                self.ks = [int(k) for k in k_choice.replace(" ","").split(",")] #strip space
+        
+        self.parameters_fr.pack_forget()
+        
+        filepaths = []
+        for protein, adj in self.adj_matrixs.items():
+            protein_path = self.proteins_path+protein+".pdb"
+            G = nx.from_numpy_matrix(adj) 
+            residue_names = self.proteins_residue_names[protein]
+            residue_names_1 = np.array(residue_names[:, 1], dtype = str)
+            
+            self.run_fr.pack()
+            for algorithm_choice in cd_touse:
+                method_to_call = getattr(pcn_final, algorithm_choice)
+                       
+                #if the algorithm is asyn fluidic
+                if (algorithm_choice == 'asyn_fluidc'):
+                    for k in self.ks:
+                                
+                        compute_tk = tk.Label(self.run_fr, text="Compute Asyn FluidC communities with k = {} for protein {}...".format(k, protein)) 
+                        compute_tk.pack()
+                        self.window.update()
+                        labels = method_to_call(G, k) #call the method
+                        pcn_final.save_labels(self.output_path, labels, residue_names, protein,  method=algorithm_choice) #save the communities as txt file
+                        
+                        plot_tk = tk.Label(self.run_fr, text="Plot Asyn FluidC with k = {} for protein {}...".format(k, protein))
+                        plot_tk.pack()
+                        self.window.update()
+                        pcn_pymol_scripts.pymol_plot(protein_path, self.output_path, "Communities", algorithm_choice, k, self.run_fr, self.window) #plot and save the communities with pymol
+                        filepath = "{}{}{}Sessions{}{}_{}_{}_{}{}_session.pse".format(self.output_path, algorithm_choice, self.add_slash_to_path, self.add_slash_to_path, protein, "Communities", algorithm_choice, "ncoms", k)
+                        filepaths.append(filepath)
+                        plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with Asyn FluidC and k = {} for protein {}...".format(k, protein))
+                        plot_p_tk.pack()
+                        self.window.update()                   
+                        p = pcn_final.participation_coefs(G, labels, residue_names_1)
+                        pcn_final.save_part_coef(self.output_path, p, protein, algorithm_choice, k) #save the part coefs as txt file
+                        output_path_p = "{}{}{}".format(self.output_path, algorithm_choice, self.add_slash_to_path)
+                        pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, k, self.run_fr, self.window) #plot and save part coefs with pymol
+                        filepath_p = "{}Part_coefs_Sessions{}{}_part_coefs_{}_k{}_session.pse".format(output_path_p, self.add_slash_to_path, protein, algorithm_choice, k)
+                        filepaths.append(filepath_p)
+                
+                else:#if the community detection algorithm is not Asyn Fluidc, no need to specify the number of communities
+                    
+                    compute_tk = tk.Label(self.run_fr, text="Compute {} communities for protein {}...".format(algorithm_choice, protein)) 
+                    compute_tk.pack()
+                    self.window.update()
+                    labels = method_to_call(G) #call the method 
+                    n_coms = int( max(labels) + 1)
+                    pcn_final.save_labels(self.output_path, labels, residue_names, protein,  method=algorithm_choice) #save communities as txt 
+                    
+                    plot_tk = tk.Label(self.run_fr, text="Plot {} with ncoms = {} for protein {}...".format(algorithm_choice, n_coms, protein))
+                    plot_tk.pack()
+                    self.window.update()
+                    pcn_pymol_scripts.pymol_plot(protein_path, self.output_path, "Communities", algorithm_choice, n_coms, self.run_fr, self.window) #plot and save communities with pymol
+                    filepath = "{}{}{}Sessions{}{}_{}_{}_{}{}_session.pse".format(self.output_path, algorithm_choice, self.add_slash_to_path, self.add_slash_to_path, protein, "Communities", algorithm_choice, "ncoms", n_coms)
+                    filepaths.append(filepath)
+                    
+                    plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {} and ncoms = {} for protein {}...".format(algorithm_choice, n_coms, protein))
+                    plot_p_tk.pack()
+                    self.window.update()                   
+                    p = pcn_final.participation_coefs(G, labels, residue_names_1)
+                    pcn_final.save_part_coef(self.output_path, p, protein, algorithm_choice, n_coms)
+                    output_path_p = "{}{}{}".format(self.output_path, algorithm_choice, self.add_slash_to_path)
+                    pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, n_coms, self.run_fr, self.window)
+                    filepath_p = "{}Part_coefs_Sessions{}{}_part_coefs_{}_k{}_session.pse".format(output_path_p, self.add_slash_to_path, protein, algorithm_choice, n_coms)
+                    filepaths.append(filepath_p)
+          
+        self.showResults(filepaths)
+        
+    def embeddingClusteringRun(self):
+               
+        ec_touse = []
+        for i, check_button in enumerate(self.checked):
+            if check_button.get(): #checked
+                ec_touse.append(self.supported_algorithms_embeddings[i])
+        self.ec_fr.pack_forget()
+        
+        k_choice = str(self.ks_tk.get())
+        if k_choice.split(','):    
+            self.ks = [int(k) for k in k_choice.replace(" ","").split(",")] #strip space
+        
+        self.d = int(self.d_tk.get())
+                
+        filepaths = []
+        self.parameters_fr.pack_forget()
+        for protein, adj in self.adj_matrixs.items():
+            protein_path = self.proteins_path+protein+".pdb"
+            G = nx.from_numpy_matrix(adj) 
+            residue_names = self.proteins_residue_names[protein]
+            residue_names_1 = np.array(residue_names[:, 1], dtype = str)
+            for algorithm_choice in ec_touse:
+               
+                if "hope" in algorithm_choice:
+                    self.beta = float(self.beta_tk.get())
+                if "node2vec" in algorithm_choice:
+                    self.num_walks = int(self.num_walks_tk.get())
+                    self.walk_len =  int(self.walk_len_tk.get())
+                    
+                for k in self.ks:
+
+                    method_to_call = getattr(pcn_final, algorithm_choice)
+                    compute_tk = tk.Label(self.run_fr, text="Compute {} embedding + clustering with k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein)) 
+                    compute_tk.pack()
+                    self.run_fr.pack()
+                    self.window.update()
+                    labels = method_to_call(adj, n_clusters=k, d=self.d, beta=self.beta, walk_len=self.walk_len, num_walks=self.num_walks)
+                    pcn_final.save_labels(self.output_path, labels, residue_names, protein, algorithm_choice, self.d, self.beta, self.walk_len, self.num_walks)
+                    
+                    plot_tk = tk.Label(self.run_fr, text="Plot {} embedding + clustering with k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein)) 
+                    plot_tk.pack()
+                    self.run_fr.pack()
+                    self.window.update()
+                    pcn_pymol_scripts.pymol_plot_embeddings(protein_path, self.output_path, "ClustersEmbeddings", algorithm_choice, k, self.d, self.beta, self.walk_len, self.num_walks, self.run_fr, self.window)
+                                    
+                    if "hope" in algorithm_choice:
+                        filepath = "{}{}{}Sessions{}{}_{}_d{}_beta{}_k{}_session.pse".format(self.output_path, algorithm_choice, self.add_slash_to_path, self.add_slash_to_path, protein, algorithm_choice, self.d, self.beta, k)
+                        
+                    elif "node2vec" in algorithm_choice:
+                        filepath = "{}{}{}Sessions{}{}_{}_d{}_wl{}_nw{}_k{}_session.pse".format(self.output_path, algorithm_choice, self.add_slash_to_path, self.add_slash_to_path, protein, algorithm_choice, self.d, self.walk_len, self.num_walks, k)
+
+                    else:
+                        filepath = "{}{}{}Sessions{}{}_{}_d{}_k{}_session.pse".format(self.output_path, algorithm_choice, self.add_slash_to_path, self.add_slash_to_path, protein, algorithm_choice, self.d, k)
+                        
+                    filepaths.append(filepath)
+                    
+                    plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {}, k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein)) 
+                    plot_p_tk.pack()
+                    self.run_fr.pack()
+                    self.window.update() 
+                    p = pcn_final.participation_coefs(G, labels, residue_names_1)
+                    pcn_final.save_part_coef(self.output_path, p, protein, algorithm_choice, k)
+                    output_path_p = "{}{}{}{}".format(self.output_path, self.add_slash_to_path, algorithm_choice, self.add_slash_to_path)
+                    pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, k, self.run_fr, self.window)
+                    filepath_p = "{}Part_coefs_Sessions{}{}_part_coefs_{}_k{}_session.pse".format(output_path_p, self.add_slash_to_path, protein, algorithm_choice, k)
+                    filepaths.append(filepath_p)
+        
+        self.showResults(filepaths)
+
+    def reset(self):
+       
+        self.isreset = True
+        
+        self.comp_adj_fr.pack_forget()
+        self.analysis_fr.pack_forget()
+        self.cm_fr.pack_forget()
+        self.cd_fr.pack_forget()
+        self.sc_fr.pack_forget()
+        self.ec_fr.pack_forget()
+        self.parameters_fr.pack_forget()
+        self.run_fr.pack_forget()
+        self.results_fr.pack_forget()
+        
+        self.checked = list()
+        self.ks = list()
+        self.d = None
+        self.beta = None
+        self.num_walks = None
+        self.walk_len = None
+        
+        self.select_proteins()
+        
+    def back(self):
+       
+        
+        self.isback = True 
+        if self.previous_scene == "select_proteins":
+            self.comp_adj_fr.pack_forget()
+            self.analysis_fr.pack_forget()
+            self.select_proteins()
+        if self.previous_scene == "userAnalysisChoice":
+            self.cm_fr.pack_forget()
+            self.cd_fr.pack_forget()
+            self.sc_fr.pack_forget()
+            self.ec_fr.pack_forget()
+            self.parameters_fr.pack_forget()
+            self.userAnalysisChoice()
+
+    def showResults(self, filepaths):
+        
+        self.run_fr.pack_forget()
+        
+        for filepath in filepaths:
+           
+           filename = os.path.basename(filepath)
+           
+           label = tk.Label(self.results_fr, text = filename)
+           label.pack()
+           button = tk.Button(self.results_fr, text = "Open PyMOL session", bg = self.button_bg, fg = self.button_fg, command = os.system(filepath))
+           button.pack()
+           self.reset_button = tk.Button(self.results_fr, text = "Start a new analysis", bg = self.button_bg, fg = self.button_fg, command = self.reset)
+           self.results_fr.pack()    
+           self.window.update()
+        
+        self.reset_button.pack(side=tk.BOTTOM)
+        self.results_fr.pack()    
+        self.window.update()
+        
+        
+    def select_proteins(self):
+
+        if self.isback:
+            
+            self.choice_fr = tk.Frame(self.window)
+            self.comp_adj_fr = tk.Frame(self.window)
+            self.proteins_tk = tk.Entry(self.choice_fr, text='PDBs codes:', width=100)
+            self.min_tk = tk.Entry(self.choice_fr, text='Min threshold:')
+            self.max_tk = tk.Entry(self.choice_fr, text='Max threshold:')
+            
+        if self.isreset:    
+            
+            self.choice_fr = tk.Frame(self.window)
+            self.analysis_fr = tk.Frame(self.window)
+            self.cm_fr = tk.Frame(self.window)
+            self.sc_fr = tk.Frame(self.window)
+            self.cd_fr = tk.Frame(self.window)
+            self.ec_fr = tk.Frame(self.window)
+            self.parameters_fr = tk.Frame(self.window)
+            self.comp_adj_fr = tk.Frame(self.window)
+            self.run_fr = tk.Frame(self.window)
+            self.results_fr = tk.Frame(self.window)
+        
+            self.proteins_tk = tk.Entry(self.choice_fr, text='PDBs codes:', width=100)
+            self.min_tk = tk.Entry(self.choice_fr, text='Min threshold:')
+            self.max_tk = tk.Entry(self.choice_fr, text='Max threshold:')
+
+        self.initial_fr_button.pack_forget()
+        if(os.path.isfile(os.getcwd()+self.add_slash_to_path+"config.ini")):
+              
+            config_obj = configparser.ConfigParser()
+            config_obj.read(os.getcwd()+self.add_slash_to_path+"config.ini")
+            paths = config_obj["user_paths"]
+            self.output_path = paths["output_path"]
+            self.proteins_path = paths["proteins_path"]
+            self.adj_filespath = paths["adj_filespath"]
+            paths = tk.Label(self.choice_fr, text="Paths in the config file: \n output path = {} \n proteins_path = {} \n adj_filespath = {}".format(self.output_path, self.proteins_path, self.adj_filespath))
+            paths.pack(pady=0)
+          
+        else:
+               
+            proteins_path_tk = tk.Entry(choice_fr, text='PDB Directory:')
+            proteins_path_tk.pack()
+            self.proteins_path = str(proteins_path_tk.get())
+            adj_filespath_tk = tk.Entry(choice_fr, text='Adj Directory:')
+            adj_filespath_tk.pack()
+            self.adj_filespath = str(adj_filespath_tk.get())
+            output_path_tk = tk.Entry(choice_fr, text='PDB Directory:')
+            output_path_tk.pack()
+            self.output_path = str(output_path_tk.get())
+            
+        self.proteins_path = self.proteins_path+self.add_slash_to_path
+        self.output_path = self.output_path+self.add_slash_to_path
+        self.adj_filespath = self.adj_filespath+self.add_slash_to_path
+        proteins_insert_label = tk.Label(self.choice_fr, text="Please Insert Protein PDB Identifiers, separated by comma, without .pdb, e.g. 7nxc for 7nxc.pdb")
+        proteins_insert_label.pack()
+        self.proteins_tk.pack()
+          
+        adj_pdb_choice = tk.Label(self.choice_fr, text="Format File Input: PDB structures or Preprocessed PCN")
+        adj_pdb_choice.pack()
+         
+        choices = ("pdb", "adj")
+        self.choiceVar.set(choices[0])
+        cb = ttk.Combobox(self.choice_fr, textvariable=self.choiceVar, values=choices)
+        cb.pack()
+          
+        min_insert_label = tk.Label(self.choice_fr, text="Please enter non covalent bonds threshold distance for PCN costruction")
+        min_insert_label.pack()  
+        self.min_tk.pack()
+
+        max_insert_label = tk.Label(self.choice_fr, text="Please enter only significant bonds threshold distance for PCN costruction")
+        max_insert_label.pack()
+        self.max_tk.pack()
+          
+        submit_button = tk.Button(
+                                self.choice_fr,
+                                text="Start compute PCNs",
+                                bg = self.button_bg, 
+                                fg = self.button_fg,
+                                command = self.computeOrReadPCN
+                                 )
+        submit_button.pack(pady=12)
+        self.choice_fr.pack()
