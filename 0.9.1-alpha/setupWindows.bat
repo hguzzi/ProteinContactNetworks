@@ -21,5 +21,5 @@ call pip install python-dateutil
 call pip install git+https://github.com/eliorc/node2vec.git
 call pip install pyinstaller 
 
-call pyinstaller pcn_gui.py
+call pyinstaller -F --hidden-import="sklearn.neighbors._partition_nodes" --hidden-import="pygsp.optimization" pcn_gui.py
 pause

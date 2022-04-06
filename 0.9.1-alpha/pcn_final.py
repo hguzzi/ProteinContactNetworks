@@ -15,6 +15,10 @@ import os
 import base64 
 from sys import platform
 
+#tk GUI progress bar
+import tkinter as tk
+from tkinter import ttk
+
 #centrality measures
 from networkx.algorithms.centrality import degree_centrality, eigenvector_centrality, closeness_centrality, betweenness_centrality
 
@@ -222,22 +226,32 @@ def read_adj_mat(adj_filepath, p, min_, max_):
         raise Exception("Adj matrix for protein {} doesn't exists.".format(p))
 
 
-def adjacent_matrix(output_path, residues, p, min_=4, max_=8):
+def adjacent_matrix(output_path, residues, p, min_=4, max_=8, comp_adj_fr=None, window = None):
     """
     Compute the adjacency matrix.
-    Parameters: 
+    Parameters:
         output_path: string, is the output file path.
         residues: np.array, contains the euclidean distance between the alpha carbon of the amino acids of the proteins.  
         p: string with len equals to 4, is the protein pdb code.
         min_: float, is the minimum threshold distace for extract only the non covalent interactions between amino acids.
         max_: float, is the maximum threshold distace for extract only the significat interactions between amino acids.
+        comp_adj_fr: tk.Frame, is the frame of the GUI that contains the progress bar. 
+        window: tk.Tk, is the window of the GUI.
     Returns: None
     """
     n = residues.shape[0]
     adj = np.zeros((n,n))
     d = np.zeros((n,n), dtype=float)
     edge_list = []
-
+    
+    if comp_adj_fr is not None:
+        pb = ttk.Progressbar(comp_adj_fr, orient="horizontal", mode = "determinate", length = 100)
+        pb.pack()
+        pb["value"] = 0
+        label = tk.Label(comp_adj_fr, text = "Current progress {}%".format(pb["value"]))
+        label.pack()
+        window.update()
+        
     for i in range(n):
         for j in range(n):     
             if (i!=j): 
@@ -249,14 +263,26 @@ def adjacent_matrix(output_path, residues, p, min_=4, max_=8):
                     adj[j][i] = 1 #for symmetricity
                     if (([j, i] not in edge_list) and ([i, j] not in edge_list)):
                         edge_list.append([i, j])
-    
+        
+        if comp_adj_fr is not None:
+            pb["value"]= round((i/n)*100, 2)
+            label['text'] = "Current progress {}%".format(pb["value"])  
+            pb.pack()
+            label.pack()
+            window.update()
+    if comp_adj_fr is not None:
+        pb["value"]=round((n/n)*100, 2)
+        label['text'] = "Current progress {}%".format(pb["value"])  
+        pb.pack()
+        label.pack()
+        window.update()
+            
     #save Edgelists, Adj matrixs and Distances matrixs
     if not os.path.exists("{}Distances".format(output_path)):
         os.makedirs("{}Distances".format(output_path))
     np.savetxt("{}Distances{}{}_distances.txt".format(output_path, add_slash_to_path, p), d, fmt='%.2f')
     print("saved distances matrix")
     
-        
     if not os.path.exists("{}Edgelists".format(output_path)):
         os.makedirs("{}Edgelists".format(output_path))
         

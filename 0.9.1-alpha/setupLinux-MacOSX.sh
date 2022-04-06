@@ -28,6 +28,6 @@ then
 	pip install git+https://github.com/eliorc/node2vec.git
 	pip install pyinstaller 
 
-	pyinstaller pcn_gui.py
+	pyinstaller -F --hidden-import="sklearn.neighbors._partition_nodes" pcn_gui.py
 	
 fi
