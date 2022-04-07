@@ -226,6 +226,19 @@ def read_adj_mat(adj_filepath, p, min_, max_):
         raise Exception("Adj matrix for protein {} doesn't exists.".format(p))
 
 
+def printProgressBar (iteration, total):
+    
+    length = 100
+    fill = '█'
+    printEnd = '\r'
+    percent = ("{0:." + str(2) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print(f"\r |{bar}| Current progress: {percent}%", end = printEnd)
+
+    if percent == 100:
+        print()
+        
 def adjacent_matrix(output_path, residues, p, min_=4, max_=8, comp_adj_fr=None, window = None):
     """
     Compute the adjacency matrix.
@@ -251,7 +264,11 @@ def adjacent_matrix(output_path, residues, p, min_=4, max_=8, comp_adj_fr=None, 
         label = tk.Label(comp_adj_fr, text = "Current progress {}%".format(pb["value"]))
         label.pack()
         window.update()
+    else:
         
+        value = 0
+        printProgressBar(value, n)
+                   
     for i in range(n):
         for j in range(n):     
             if (i!=j): 
@@ -265,17 +282,23 @@ def adjacent_matrix(output_path, residues, p, min_=4, max_=8, comp_adj_fr=None, 
                         edge_list.append([i, j])
         
         if comp_adj_fr is not None:
-            pb["value"]= round((i/n)*100, 2)
+            pb["value"]= round((i+1/n)*100, 2)
             label['text'] = "Current progress {}%".format(pb["value"])  
             pb.pack()
             label.pack()
             window.update()
+        else:
+            printProgressBar(i + 1, n)
+    
     if comp_adj_fr is not None:
-        pb["value"]=round((n/n)*100, 2)
+        pb["value"]= round((i+1/n)*100, 2)
         label['text'] = "Current progress {}%".format(pb["value"])  
         pb.pack()
         label.pack()
         window.update()
+    else:
+        printProgressBar(i + 1, n)
+    
             
     #save Edgelists, Adj matrixs and Distances matrixs
     if not os.path.exists("{}Distances".format(output_path)):
