@@ -735,7 +735,7 @@ def hardSpectralClustering(A, n_clusters = None, norm=False, embedding=None, d=N
     """
     Hard Spectral Clustering Algorithm. 
     Compute the eigenvectors and then use on them KMeans for clustering. 
-    In case of embedding, it uses the embedding on the calculated eigenvectors and then use KMeans for extract the clusters.
+    In case of embedding, it uses the embedding on the graph and then use KMeans for extract the clusters.
  
     Parameters:
         A: numpy.array, the adjacency matrix of the graph.
@@ -792,7 +792,7 @@ def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  
     """
     Soft Spectral Clustering Algorithm. 
     Compute the eigenvectors and then use on them Fuzzy C-Means for clustering. 
-    In case of embedding, it uses the embedding on the calculated eigenvectors and then use Fuzzy C-Means for extract the clusters.
+    In case of embedding, it uses the embedding on the graph and then use Fuzzy C-Means for extract the clusters.
  
     Parameters:
         A: numpy.array, the adjacency matrix of the graph.
@@ -846,116 +846,59 @@ def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  
 
     return labels
   
-def ssc_shimalik(A, n_clusters = None, embedding=None, d=None, beta=None, walk_len=None, num_walks=None):
+def ssc_shimalik(A, n_clusters = None):
     """
     Soft Spectral Clustering with Shi Malik Approach.
     Compute the eigenvalues and eigenvectors of the laplacian matrix solving the generalized eigenvalue problem.
     Parameters:
         A: numpy.array, the adjacency matrix of the graph.
-        n_clusters: int, default None. The number of clusters 
-        norm: boolean, default False. If is True the algorithm will compute the normalized laplacian matrix, otherwise the algorithm will compute the unnormalize laplacian matrix. 
-        embedding: string, default None. If None, no embeddings algorithms are applied. Outherwise, a supported embedding algorithm is applied on the eigenvectors of the laplacian matrix.
-        d: int, default None, dimension for the embedding
-        beta: float, default None, decay factor for HOPE embedding
-        walk_len: int, default None, length of the random walks used in node2vec embedding.
-        num_walks: int, default None, number of random walks each node computed in node2vec embedding.
+        n_clusters: int, default None. The number of clusters.
+        
     Returns:
         labels: extracted clusters
     """
     
-    supported_embeddings = ["HOPE", "LaplacianEigenmaps", "Node2Vec"]
+    L = compute_laplacian_matrix(A)
+    D = degree_matrix(A)
+    eigenvalues, eigenvectors = eigh(L, D, eigvals_only=False)
+    idx = eigenvalues.argsort()
+    sortedEigenvalues = eigenvalues[idx].real
+    sortedEigenvectors = eigenvectors[:,idx].real
     
-    if embedding is None:
+    if n_clusters is None:
+        n_clusters = computeBestK(sortedEigenvalues)
         
-        L = compute_laplacian_matrix(A)
-        D = degree_matrix(A)
-        eigenvalues, eigenvectors = eigh(L, D, eigvals_only=False)
-        idx = eigenvalues.argsort()
-        sortedEigenvalues = eigenvalues[idx].real
-        sortedEigenvectors = eigenvectors[:,idx].real
-        train = sortedEigenvectors[:, :n_clusters]
-       
-    else:
-    
-        if (embedding in supported_embeddings):
-                    
-            G = nx.from_numpy_matrix(A)
-            if (embedding == "HOPE"): #embedding dimension (d) and decay factor (beta) as inputs
-                model = HOPE(d=d, beta=beta)
-            elif (embedding == "LaplacianEigenmaps"):
-                model = LaplacianEigenmaps(d=d)
-            elif (embedding == "Node2Vec"):
-                model = Node2Vec(G, dimensions=d, walk_length=walk_len, num_walks=num_walks, workers = 1)
-            
-            if embedding == "Node2Vec":
-                model = model.fit()
-                train = model.wv.vectors
-            else:
-                train, t = model.learn_embedding(graph=G)
-            
-            train = np.array(train)
-        else: raise Exception ("embedding {} not supported".format(embedding))
-    
+    train = sortedEigenvectors[:, :n_clusters]
+          
     fcm = FCM(n_clusters=n_clusters)
     fcm.fit(train)
     labels = fcm.predict(train)
     
     return labels
 
-def hsc_shimalik(A, n_clusters = None, embedding = None, d=None, beta=None, walk_len=None, num_walks=None):
+def hsc_shimalik(A, n_clusters = None):
     """
     Hard Spectral Clustering with Shi Malik Approach.
     Compute the eigenvalues and eigenvectors of the laplacian matrix solving the generalized eigenvalue problem.
     Parameters:
         A: numpy.array, the adjacency matrix of the graph.
         n_clusters: int, default None. The number of clusters 
-        norm: boolean, default False. If is True the algorithm will compute the normalized laplacian matrix, otherwise the algorithm will compute the unnormalize laplacian matrix. 
-        embedding: string, default None. If None, no embeddings algorithms are applied. Outherwise, a supported embedding algorithm is applied on the eigenvectors of the laplacian matrix.
-        d: int, default None, dimension for the embedding
-        beta: float, default None, decay factor for HOPE embedding
-        walk_len: int, default None, length of the random walks used in node2vec embedding.
-        num_walks: int, default None, number of random walks each node computed in node2vec embedding.
     Returns:
         labels: extracted clusters
     """
-    supported_embeddings = ["HOPE", "LaplacianEigenmaps", "Node2Vec"]
-  
-    if embedding is None:
-  
-        L = compute_laplacian_matrix(A)
-        D = degree_matrix(A)
-        eigenvalues, eigenvectors = eigh(L, D, eigvals_only=False)
-        idx = eigenvalues.argsort()
-        sortedEigenvalues = eigenvalues[idx].real
-        sortedEigenvectors = eigenvectors[:,idx].real
+    
+    L = compute_laplacian_matrix(A)
+    D = degree_matrix(A)
+    eigenvalues, eigenvectors = eigh(L, D, eigvals_only=False)
+    idx = eigenvalues.argsort()
+    sortedEigenvalues = eigenvalues[idx].real
+    sortedEigenvectors = eigenvectors[:,idx].real
         
-        if n_clusters is None:
-            n_clusters = computeBestK(sortedEigenvalues)
+    if n_clusters is None:
+        n_clusters = computeBestK(sortedEigenvalues)
         
-        train = sortedEigenvectors[:, :n_clusters]
+    train = sortedEigenvectors[:, :n_clusters]
         
-    else:
-  
-        if (embedding in supported_embeddings):
-                        
-            G = nx.from_numpy_matrix(A)
-            if (embedding == "HOPE"): #embedding dimension (d) and decay factor (beta) as inputs
-                model = HOPE(d=d, beta=beta)
-            elif (embedding == "LaplacianEigenmaps"):
-                model = LaplacianEigenmaps(d=d)
-            elif (embedding == "Node2Vec"):
-                model = Node2Vec(G, dimensions=d, walk_length=walk_len, num_walks=num_walks, workers = 1)
-            
-            if embedding == "Node2Vec":
-                model = model.fit()
-                train = model.wv.vectors
-            else:
-                train, t = model.learn_embedding(graph=G)
-            
-            train = np.array(train)    
-        else:
-            raise Exception ("embedding {} not supported".format(embedding))
-
     km = KMeans(n_clusters=n_clusters).fit(train)
     labels = km.labels_
 
