@@ -2,11 +2,11 @@
 
 Protein Contact Networks Miner is a command line tool designed for annotate allosteric domains of a protein based of his rappresentation trough a unweighted graph of amino acids significant and non covalent interactions, this graph is also called Protein Contact Network. PCN Miner now has a Graphic User Interface. 
 
-Protein Contact Network is an unweighted graph: the nodes of the graphs are the amino acids and exists an edge that connect two nodes (amino acids) i and j only if the euclidean distance between this two amino acids is between 4 Angstrom (only non covalent interactions) and 8 Angstrom (only significant interactions). The distance between two aminoacids i and j is approssimated by the distance between the Alpha Carbon of the amino acids.
+Protein Contact Network is an unweighted graph: the nodes of the graphs are the amino acids and exists an edge that connect two nodes (amino acids) i and j only if the euclidean distance between this two amino acids is between 4 Angstrom (only non covalent interactions) and 8 Angstrom (only significant interactions). The distance between two aminoacids i and j is approssimated by the distance between the Alpha Carbon of the amino acids. The user can modify the only covalent (min) and the only significant (max) threshold distance for PCN construction. 
 
-![image](https://user-images.githubusercontent.com/87126937/161926499-c8a9299f-c39d-4bf5-99c2-6e3fed0a9f99.png)
+![image](https://user-images.githubusercontent.com/87126937/162151753-43c6157b-028a-45e2-9aeb-dafd912d4162.png)
 
-![image](https://user-images.githubusercontent.com/87126937/161926901-83d9cf14-f402-454b-b90e-637a35e9045a.png)
+![image](https://user-images.githubusercontent.com/87126937/162151714-bf5ce554-14ad-4100-b4e9-6d95af19bca0.png)
 
 PCN global (like graph diameter) or local descriptors (like node centrality measures) are useful to model and analyse protein functions. PCN Miner allow to identify modules (also called communities or clusters) in protein molecules using three different approaches: 
   1. spectral clustering: extract clusters from a graph with a clustering approach based on the Laplacian matrix eigenvectors following the guidelines given    in: A tutorial on spectral clustering [1];
@@ -28,7 +28,7 @@ Third part softwares needed:
     -Anaconda3: https://www.anaconda.com/products/individual
     -PyMOL: https://pymol.org/2/#download
 
-Required libraries: numpy, networkx, regex, scipy, fuzzy-c-means, cdlib, GEM, node2vec, pymol, pytz, python-dateutil, pyinstaller.
+Required libraries: numpy, networkx, regex, scipy, fuzzy-c-means, cdlib, GEM, node2vec, pymol, pytz, python-dateutil.
   
 This libraries are automatically installed when the user runs setupWindows.bat or setupLinux-MACOSX.sh
 
@@ -56,11 +56,28 @@ How to use the GUI version: #TO DO: use pyinstaller to build an .exe file from t
                                     
                                     conda activate PCN
                                       cd 0.9.1-alpha       
-                                     python pcn_gui.py
+                                  python pcn_gui_main.py
 
 Example:
+  
+Entry PDB code: 6VXX
 
+Description: SARS CoV 2 Spike protein closed form
                                     
+Method: Community Detection
+
+Algorithm: Leiden
+
+Number of communities extracted: 20 
+
+![image](https://user-images.githubusercontent.com/87126937/162151095-3ddc1177-3b32-4407-b6d7-06eb4dab9b3e.png)
+
+Method: Centrality Analysis
+
+Algorithm: Eigenvector Centrality
+
+![image](https://user-images.githubusercontent.com/87126937/162151265-a64b2af6-bb15-41eb-883f-a4cc1779439d.png)
+
 
 References:
   
