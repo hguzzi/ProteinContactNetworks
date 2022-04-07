@@ -2,7 +2,7 @@
 
 Protein Contact Networks Miner is a command line tool designed for annotate allosteric domains of a protein based of his rappresentation trough a unweighted graph of amino acids significant and non covalent interactions, this graph is also called Protein Contact Network. PCN Miner now has a Graphic User Interface. 
 
-Protein Contact Network is an unweighted graph: the nodes of the graphs are the amino acids and exists an edge that connect two nodes (amino acids) i and j only if the euclidean distance between this two amino acids is between 4 Angstrom (only non covalent interactions) and 8 Angstrom (only significant interactions). The distance between two aminoacids i and j is approssimated by the distance between the Alpha Carbon of the amino acids. The user can modify the only covalent (min) and the only significant (max) threshold distance for PCN construction. 
+Protein Contact Network is an unweighted graph where the nodes of the graph are the amino acids of the protein and exists an edge that connect two nodes i and j only if the euclidean distance between them is between 4 Angstrom (only non covalent interactions) and 8 Angstrom (only significant interactions). The distance between two aminoacids i and j is approssimated by the distance between the Alpha Carbon of the amino acids. The user can modify the only covalent (min) and the only significant (max) threshold distance for PCN construction. 
 
 ![image](https://user-images.githubusercontent.com/87126937/162151753-43c6157b-028a-45e2-9aeb-dafd912d4162.png)
 
@@ -12,6 +12,14 @@ PCN global (like graph diameter) or local descriptors (like node centrality meas
   1. spectral clustering: extract clusters from a graph with a clustering approach based on the Laplacian matrix eigenvectors following the guidelines given    in: A tutorial on spectral clustering [1];
   2. embedding+clustering: uses one of the embedding algorithm in the GEM library [2] and then apply spectral clustering;
   3. community detection: uses one of the community detection algorithm in the cdlib library [3].
+
+The main objective of PCN Miner are:
+
+(i) identify the putative allosteric paths and regions in protein structures so being of help in the design of allosteric drugs; 
+
+(ii) allow the user to hypotize the functional effect of mutations; 
+
+(iii) recognise funtional domains in proteins.
 
 Supported Algorithms:
   
