@@ -28,7 +28,7 @@ Third part softwares needed:
     -Anaconda3: https://www.anaconda.com/products/individual
     -PyMOL: https://pymol.org/2/#download
 
-Required libraries: numpy, networkx, regex, scipy, fuzzy-c-means, cdlib, GEM, node2vec, pymol, pytz, python-dateutil, pyinstaller.
+Required libraries: numpy, networkx, regex, scipy, fuzzy-c-means, cdlib, GEM, node2vec, pymol, pytz, python-dateutil.
   
 This libraries are automatically installed when the user runs setupWindows.bat or setupLinux-MACOSX.sh
 
@@ -61,15 +61,19 @@ How to use the GUI version: #TO DO: use pyinstaller to build an .exe file from t
 Example:
   
 Entry PDB code: 6VXX
+
 Description: SARS CoV 2 Spike protein closed form
                                     
 Method: Community Detection
+
 Algorithm: Leiden
+
 Number of communities extracted: 20 
 
 ![image](https://user-images.githubusercontent.com/87126937/162151095-3ddc1177-3b32-4407-b6d7-06eb4dab9b3e.png)
 
 Method: Centrality Analysis
+
 Algorithm: Eigenvector Centrality
 
 ![image](https://user-images.githubusercontent.com/87126937/162151265-a64b2af6-bb15-41eb-883f-a4cc1779439d.png)
