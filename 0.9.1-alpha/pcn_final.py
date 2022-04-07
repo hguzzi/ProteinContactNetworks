@@ -361,7 +361,7 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
     supported_methods_embeddings = [
                                        "fuzzycmeans_hope", "kmeans_hope", "fuzzycmeans_laplacianeigenmaps", "kmeans_laplacianeigenmaps" ,
                                        "fuzzycmeans_node2vec", "kmeans_node2vec"
-                                      ]
+                                   ]
     supported_methods_communities = ["louvain", "leiden", "walktrap", "asyn_fluidc", "greedy_modularity", "infomap", "spinglass"]
     
     if platform == "win32":
