@@ -2,4 +2,8 @@
 __pycache__/
 
 #ignore the config file
+<<<<<<< HEAD
 *.ini
+=======
+*.ini
+>>>>>>> 73bca8121c4bde38a5148465f99dc11d8081a4fb

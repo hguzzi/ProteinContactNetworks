@@ -282,7 +282,7 @@ def adjacent_matrix(output_path, residues, p, min_=4, max_=8, comp_adj_fr=None, 
                         edge_list.append([i, j])
         
         if comp_adj_fr is not None:
-            pb["value"]= round((i+1/n)*100, 2)
+            pb["value"]= round(((i+1)/n)*100, 2)
             label['text'] = "Current progress {}%".format(pb["value"])  
             pb.pack()
             label.pack()
@@ -291,7 +291,7 @@ def adjacent_matrix(output_path, residues, p, min_=4, max_=8, comp_adj_fr=None, 
             printProgressBar(i + 1, n)
     
     if comp_adj_fr is not None:
-        pb["value"]= round((i+1/n)*100, 2)
+        pb["value"]= round(((i+1)/n)*100, 2)
         label['text'] = "Current progress {}%".format(pb["value"])  
         pb.pack()
         label.pack()
@@ -358,15 +358,10 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
         dict_node_cluster_1: dict {node: label}, 'method' extracted clusters/communities. 
     """
     supported_methods_clustering = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik", "skl_spectral_clustering"]
-    supported_methods_embeddings =  [
-                                   "unnorm_ssc_hope", "norm_ssc_hope", "unnorm_hsc_hope", "norm_hsc_hope", "hsc_shimalik_hope", "ssc_shimalik_hope",
-                                   
-                                   "unnorm_ssc_laplacianeigenmaps", "norm_ssc_laplacianeigenmaps", "unnorm_hsc_laplacianeigenmaps", "norm_hsc_laplacianeigenmaps",
-                                   "hsc_shimalik_laplacianeigenmaps", "ssc_shimalik_laplacianeigenmaps", 
-                                   
-                                   "unnorm_ssc_node2vec", "norm_ssc_node2vec", "unnorm_hsc_node2vec", "norm_hsc_node2vec", "hsc_shimalik_node2vec", 
-                                   "ssc_shimalik_node2vec",
-                                   ]
+    supported_methods_embeddings = [
+                                       "fuzzycmeans_hope", "kmeans_hope", "fuzzycmeans_laplacianeigenmaps", "kmeans_laplacianeigenmaps" ,
+                                       "fuzzycmeans_node2vec", "kmeans_node2vec"
+                                      ]
     supported_methods_communities = ["louvain", "leiden", "walktrap", "asyn_fluidc", "greedy_modularity", "infomap", "spinglass"]
     
     if platform == "win32":
@@ -784,6 +779,8 @@ def hardSpectralClustering(A, n_clusters = None, norm=False, embedding=None, d=N
             else:
                 train, t = model.learn_embedding(graph=G)
             
+            train = np.array(train)
+
         else: raise Exception ("embedding {} not supported".format(embedding))
     
     km = KMeans(n_clusters=n_clusters).fit(train)
@@ -840,6 +837,7 @@ def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  
             else:
                 train, t = model.learn_embedding(graph=G)
             
+            train = np.array(train)
         else: raise Exception ("embedding {} not supported".format(embedding))
     
     fcm = FCM(n_clusters=n_clusters)
@@ -894,7 +892,8 @@ def ssc_shimalik(A, n_clusters = None, embedding=None, d=None, beta=None, walk_l
                 train = model.wv.vectors
             else:
                 train, t = model.learn_embedding(graph=G)
-
+            
+            train = np.array(train)
         else: raise Exception ("embedding {} not supported".format(embedding))
     
     fcm = FCM(n_clusters=n_clusters)
@@ -953,6 +952,7 @@ def hsc_shimalik(A, n_clusters = None, embedding = None, d=None, beta=None, walk
             else:
                 train, t = model.learn_embedding(graph=G)
             
+            train = np.array(train)    
         else:
             raise Exception ("embedding {} not supported".format(embedding))
 
@@ -1011,168 +1011,66 @@ def norm_ssc(A, n_clusters = None, norm=True, embedding=None, d=None, beta=None,
     labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
 
-#EMBEDDINGS
-def unnorm_hsc_hope(A, n_clusters = None, norm=False, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
+#EMBEDDING + NORMAL CLUSTERING ALGORITHMS
+
+def fuzzycmeans_hope(A, n_clusters = None, norm=False, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
     """
-    Unnormalized Hard Spectral Clustering + HOPE Embedding.
+    Soft Clustering + HOPE Embedding.
+    Parameters: see softSpectralClustering
+    Returns: see softSpectralClustering
+    """
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
+    return labels
+    
+def kmeans_hope(A, n_clusters = None, norm=False, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
+    """
+    Hard Clustering + HOPE Embedding.
     Parameters: see hardSpectralClustering
     Returns: see hardSpectralClustering
     """
     labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
-def norm_hsc_hope(A, n_clusters = None, norm=True, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
-    """
-    Normalized Hard Spectral Clustering + HOPE Embedding.
-    Parameters: see hardSpectralClustering
-    Returns: see hardSpectralClustering
-    """
-    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
-    return labels
  
-def unnorm_hsc_node2vec(A, n_clusters = None, norm=False, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
+def kmeans_node2vec(A, n_clusters = None, norm=False, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
     """
-    Unnormalized Hard Spectral Clustering + node2vec Embedding.
+    Hard Clustering + node2vec Embedding.
     Parameters: see hardSpectralClustering
     Returns: see hardSpectralClustering
     """
     labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks, walk_len, num_walks)
     return labels
     
-def norm_hsc_node2vec(A, n_clusters = None, norm=True, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
+
+def fuzzycmeans_node2vec(A, n_clusters = None, norm=False, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
     """
-    Normalized Hard Spectral Clustering + node2vec Embedding.
-    Parameters: see hardSpectralClustering
-    Returns: see hardSpectralClustering
-    """
-    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks, walk_len, num_walks)
-    return labels
-def unnorm_ssc_node2vec(A, n_clusters = None, norm=False, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
-    """
-    Unnormalized Soft Spectral Clustering + node2vec Embedding.
+    Soft Clustering + node2vec Embedding.
     Parameters: see softSpectralClustering
     Returns: see softSpectralClustering
     """
     labels = softSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks, walk_len, num_walks)
     return labels
     
-def norm_ssc_node2vec(A, n_clusters = None, norm=True, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
-    """
-    Normalized Soft Spectral Clustering + node2vec Embedding.
-    Parameters: see softSpectralClustering
-    Returns: see softSpectralClustering
-    """
-    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks, walk_len, num_walks)
-    return labels
 
-def hsc_shimalik_node2vec(A, n_clusters = None, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
+def kmeans_laplacianeigenmaps(A, n_clusters = None, norm=False, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
     """
-    Shi Malik Hard Spectral Clustering + node2vec Embedding.
-    Parameters: see hsc_shimalik
-    Returns:  see hsc_shimalik
-    """
-    labels = hsc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks, walk_len, num_walks)
-    return labels
-    
-def ssc_shimalik_node2vec(A, n_clusters = None, embedding="Node2Vec", d=2, beta=None, walk_len=30, num_walks=30):
-    """
-    Shi Malik Soft Spectral Clustering + node2vec Embedding.
-    Parameters: see ssc_shimalik
-    Returns:  see ssc_shimalik
-    """
-    labels = ssc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks, walk_len, num_walks)
-    return labels
-
-def unnorm_ssc_hope(A, n_clusters = None, norm=False, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
-    """
-    Unnormalized Soft Spectral Clustering + HOPE Embedding.
-    Parameters: see softSpectralClustering
-    Returns:  see softSpectralClustering
-    """
-    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
-    return labels
-    
-def norm_ssc_hope(A, n_clusters = None, norm=True, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
-    """
-    Normalized Soft Spectral Clustering + HOPE Embedding.
-    Parameters: see softSpectralClustering
-    Returns:  see softSpectralClustering
-    """
-    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
-    return labels
-    
-def hsc_shimalik_hope(A, n_clusters = None, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
-    """
-    Shi Malik Hard Spectral Clustering + HOPE Embedding.
-    Parameters: see hsc_shimalik
-    Returns:  see hsc_shimalik
-    """
-    labels = hsc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks)
-    return labels
-    
-def ssc_shimalik_hope(A, n_clusters = None, embedding="HOPE", d=2, beta=0.01, walk_len=None, num_walks=None):
-    """
-    Shi Malik Soft Spectral Clustering + HOPE Embedding.
-    Parameters: see hsc_shimalik
-    Returns:  see hsc_shimalik
-    """
-    labels = ssc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks)
-    return labels
-
-def unnorm_hsc_laplacianeigenmaps(A, n_clusters = None, norm=False, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
-    """
-    Unnormalized Hard Spectral Clustering + LaplacianEigenmaps Embedding.
+    Hard Clustering + LaplacianEigenmaps Embedding.
     Parameters: see hardSpectralClustering
     Returns:  see hardSpectralClustering
     """
     labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
-def norm_hsc_laplacianeigenmaps(A, n_clusters = None, norm=True, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
-    """
-    Normalized Hard Spectral Clustering + LaplacianEigenmaps Embedding.
-    Parameters: see hardSpectralClustering
-    Returns:  see hardSpectralClustering
-    """
-    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
-    return labels
     
-def unnorm_ssc_laplacianeigenmaps(A, n_clusters = None, norm=False, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
+def fuzzycmeans_laplacianeigenmaps(A, n_clusters = None, norm=False, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
     """
-    Unnormalized Soft Spectral Clustering + LaplacianEigenmaps Embedding.
+    Soft Clustering + LaplacianEigenmaps Embedding.
     Parameters: see softSpectralClustering
     Returns:  see softSpectralClustering
     """
     labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
-    return labels
+    return labels   
     
-def norm_ssc_laplacianeigenmaps(A, n_clusters = None, norm=True, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
-    """
-    Normalized Soft Spectral Clustering + LaplacianEigenmaps Embedding.
-    Parameters: see softSpectralClustering
-    Returns:  see softSpectralClustering
-    """
-
-    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
-    return labels
-    
-def hsc_shimalik_laplacianeigenmaps(A, n_clusters = None, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
-    """
-    Shi Malik Hard Spectral Clustering + LaplacianEigenmaps Embedding.
-    Parameters: see hsc_shimalik
-    Returns:  see hsc_shimalik
-    """
-    labels = hsc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks)
-    return labels
-    
-def ssc_shimalik_laplacianeigenmaps(A, n_clusters = None, embedding="LaplacianEigenmaps", d=2, beta=None, walk_len=None, num_walks=None):
-    """
-    Shi Malik Soft Spectral Clustering + LaplacianEigenmaps Embedding.
-    Parameters: see ssc_shimalik
-    Returns:  see ssc_shimalik
-    """
-    labels = ssc_shimalik(A, n_clusters, embedding, d, beta, walk_len, num_walks)
-    return labels
     
 #CENTRALITY MEASURES
 

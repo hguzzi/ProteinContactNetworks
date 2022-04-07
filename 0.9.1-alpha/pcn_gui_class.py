@@ -22,14 +22,9 @@ class PCNMinerGUI():
         #initialize supported algorithms
         self.supported_algorithms_clustering = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik", "skl_spectral_clustering"]
         self.supported_algorithms_embeddings = [
-                                       "unnorm_ssc_hope", "norm_ssc_hope", "unnorm_hsc_hope", "norm_hsc_hope", "hsc_shimalik_hope", "ssc_shimalik_hope",
-                                       
-                                       "unnorm_ssc_laplacianeigenmaps", "norm_ssc_laplacianeigenmaps", "unnorm_hsc_laplacianeigenmaps", "norm_hsc_laplacianeigenmaps",
-                                       "hsc_shimalik_laplacianeigenmaps", "ssc_shimalik_laplacianeigenmaps", 
-                                       
-                                       "unnorm_ssc_node2vec", "norm_ssc_node2vec", "unnorm_hsc_node2vec", "norm_hsc_node2vec", "hsc_shimalik_node2vec", 
-                                       "ssc_shimalik_node2vec"
-                                       ]
+                                                "fuzzycmeans_hope", "kmeans_hope", "fuzzycmeans_laplacianeigenmaps", "kmeans_laplacianeigenmaps" ,
+                                                "fuzzycmeans_node2vec", "kmeans_node2vec"
+                                                ]
         self.supported_algorithms_communities = ["louvain", "leiden", "walktrap", "asyn_fluidc", "greedy_modularity", "infomap", "spinglass"]
         self.supported_centralities_measures = ["closeness", "eigenvector_c", "betweenness", "degree_c"]
     
