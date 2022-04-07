@@ -3,6 +3,3 @@ __pycache__/
 
 #ignore the config file
 *.ini
-
-#ignore file
-pcn_gui_old.py
