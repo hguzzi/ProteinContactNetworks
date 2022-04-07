@@ -579,6 +579,7 @@ class PCNMinerGUI():
                 sc_touse.append(self.supported_algorithms_clustering[i])        
         self.sc_fr.pack_forget()        
         #read k parameter from user entry input
+        k_choice = str(self.ks_tk.get())
         if k_choice.split(','):    
             self.ks = [int(k) for k in k_choice.replace(" ","").split(",")] #strip space
       
