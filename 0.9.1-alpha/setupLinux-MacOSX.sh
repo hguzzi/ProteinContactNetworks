@@ -26,8 +26,5 @@ then
 	pip install pytz
 	pip install python-dateutil
 	pip install git+https://github.com/eliorc/node2vec.git
-	pip install pyinstaller 
 
-	pyinstaller -F --hidden-import="sklearn.neighbors._partition_nodes" pcn_gui_main.py
-				
 fi

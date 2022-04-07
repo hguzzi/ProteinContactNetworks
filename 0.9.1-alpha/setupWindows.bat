@@ -19,7 +19,5 @@ call conda install -c schrodinger pymol
 call pip install pytz
 call pip install python-dateutil
 call pip install git+https://github.com/eliorc/node2vec.git
-call pip install pyinstaller 
 
-call pyinstaller -F --hidden-import="sklearn.neighbors._partition_nodes" --hidden-import="pygsp.optimization" --hidden-import="pygsp.features" --hidden-import="pygsp.filters.filter" pcn_gui_main.py
 pause

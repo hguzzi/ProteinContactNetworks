@@ -1,11 +1,8 @@
 #ignore pycache directory
 __pycache__/
-build/
-dist/
 
 #ignore the config file
 *.ini
 
 #ignore file
-pcn_gui_main.spec
 pcn_gui_old.py

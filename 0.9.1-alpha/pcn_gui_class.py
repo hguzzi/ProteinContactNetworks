@@ -12,7 +12,7 @@ from tkinter import ttk
 
 class PCNMinerGUI():
     """
-    Object for Graphic User Interface for PCN-Miner.
+    Graphic User Interface Object for PCN-Miner.
     """
     def __init__(self, master):
         """
@@ -579,11 +579,7 @@ class PCNMinerGUI():
                 sc_touse.append(self.supported_algorithms_clustering[i])        
         self.sc_fr.pack_forget()        
         #read k parameter from user entry input
-        k_choice = str(self.ks_tk.get())
-        if k_choice == 'best_k':
-            #use max eigengap method to compute the best k to use
-            pass
-        elif k_choice.split(','):    
+        if k_choice.split(','):    
             self.ks = [int(k) for k in k_choice.replace(" ","").split(",")] #strip space
       
         filepaths = []
