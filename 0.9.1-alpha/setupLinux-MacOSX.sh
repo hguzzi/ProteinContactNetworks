@@ -5,13 +5,11 @@ then
 
 	echo $OSTYPE	
 	
-	sudo apt install git
-	sudo apt install python-is-python3
-	
 	echo "Preparing a new conda enviroment called PCN"
 	conda create -n PCN python=3.8.3
 	conda activate PCN 
-	sudo apt install pip
+		
+	python -m ensurepip --upgrade
 	pip install configparser
 	python create_config_file.py
 	
@@ -28,3 +26,4 @@ then
 	pip install git+https://github.com/eliorc/node2vec.git
 
 fi
+
