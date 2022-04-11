@@ -67,7 +67,9 @@ class PCNMinerGUI():
         self.isback = False
         #true when user click the Reset button
         self.isreset = False
-        
+        #true if config file with directory paths exists
+        self.config = True
+                    
         #Initialize and set some parameters for the GUI window
         self.window = master
         self.window.title("PCN-Miner 0.9.1-alpha")
@@ -102,6 +104,11 @@ class PCNMinerGUI():
         self.results_fr = tk.Frame(self.window)        #for display results
         
         #initialize entries
+        
+        #paths user entry, to use when no config file exist
+        self.proteins_path_tk = tk.Entry(self.choice_fr, text='PDB Directory:', width=80)
+        self.adj_filespath_tk = tk.Entry(self.choice_fr, text='Adj Directory:', width=80)
+        self.output_path_tk = tk.Entry(self.choice_fr, text="Output Directory:", width=80)
         
         #entry proteins to analyze
         self.proteins_tk = tk.Entry(self.choice_fr, text='PDBs codes:', width=100)
@@ -232,6 +239,18 @@ class PCNMinerGUI():
 
     def computeOrReadPCN(self):
         
+        if not self.config:
+            self.proteins_path = str(self.proteins_path_tk.get())
+            self.adj_filespath = str(self.adj_filespath_tk.get())
+            self.output_path = str(self.output_path_tk.get())
+            
+            if (not self.proteins_path.endswith(self.add_slash_to_path)):
+                self.proteins_path = self.proteins_path+self.add_slash_to_path
+            if (not self.output_path.endswith(self.add_slash_to_path)):
+                self.output_path = self.output_path+self.add_slash_to_path
+            if (not self.adj_filespath.endswith(self.add_slash_to_path)):
+                self.adj_filespath = self.adj_filespath+self.add_slash_to_path
+
         #if type file is adj -> read the adjs files
         if self.choiceVar.get() == 'adj':
             self.read_adjs()
@@ -873,6 +892,9 @@ class PCNMinerGUI():
             self.proteins_tk = tk.Entry(self.choice_fr, text='PDBs codes:', width=100)
             self.min_tk = tk.Entry(self.choice_fr, text='Min threshold:')
             self.max_tk = tk.Entry(self.choice_fr, text='Max threshold:')
+            self.proteins_path_tk = tk.Entry(self.choice_fr, text='PDB Directory:', width=80)
+            self.adj_filespath_tk = tk.Entry(self.choice_fr, text='Adj Directory:', width=80)
+            self.output_path_tk = tk.Entry(self.choice_fr, text="Output Directory:", width=80)
             
         if self.isreset:    
             
@@ -904,20 +926,21 @@ class PCNMinerGUI():
             paths.pack(pady=0)
           
         else:
-               
-            proteins_path_tk = tk.Entry(choice_fr, text='PDB Directory:')
-            proteins_path_tk.pack()
-            self.proteins_path = str(proteins_path_tk.get())
-            adj_filespath_tk = tk.Entry(choice_fr, text='Adj Directory:')
-            adj_filespath_tk.pack()
-            self.adj_filespath = str(adj_filespath_tk.get())
-            output_path_tk = tk.Entry(choice_fr, text='PDB Directory:')
-            output_path_tk.pack()
-            self.output_path = str(output_path_tk.get())
             
-        self.proteins_path = self.proteins_path+self.add_slash_to_path
-        self.output_path = self.output_path+self.add_slash_to_path
-        self.adj_filespath = self.adj_filespath+self.add_slash_to_path
+            self.config = False
+            
+            proteins_path_label = tk.Label(self.choice_fr, text = "Insert Proteins PDB directory:")
+            proteins_path_label.pack()
+            self.proteins_path_tk.pack()
+            
+            adj_path_label = tk.Label(self.choice_fr, text = "Insert Adjacency matrixs directory:")
+            adj_path_label.pack()
+            self.adj_filespath_tk.pack()
+            
+            output_path_label = tk.Label(self.choice_fr, text = "Insert Output directory:")
+            output_path_label.pack()
+            self.output_path_tk.pack()
+
         proteins_insert_label = tk.Label(self.choice_fr, text="Please Insert Protein PDB Identifiers, separated by comma, without .pdb, e.g. 7nxc for 7nxc.pdb")
         proteins_insert_label.pack()
         self.proteins_tk.pack()
