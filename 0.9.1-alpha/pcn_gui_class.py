@@ -849,7 +849,7 @@ class PCNMinerGUI():
            
            label = tk.Label(self.results_fr, text = filename)
            label.pack()
-           button = tk.Button(self.results_fr, text = "Open PyMOL session", bg = self.button_bg, fg = self.button_fg, command = os.system(filepath))
+           button = tk.Button(self.results_fr, text = "Open PyMOL session", bg = self.button_bg, fg = self.button_fg, command = lambda:os.startfile(filepath))
            button.pack()
         
         #only reset button, we are at the end 
