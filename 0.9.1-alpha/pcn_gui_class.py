@@ -8,7 +8,7 @@ from sys import platform
 import configparser
 import tkinter as tk
 from tkinter import ttk
-
+from functools import partial
 
 class PCNMinerGUI():
     """
@@ -198,7 +198,6 @@ class PCNMinerGUI():
         proteins_to_analyze_tk.pack() 
         
         method_analysis_tk = tk.Label(self.analysis_fr, text="Choose the method to use for the analysis of the PCNs: ", bg = self.bg)
-        method_analysis_tk = self.background_image
         method_analysis_tk.pack()
         
         #buttons that enables the user to select the method approach to use
@@ -1006,14 +1005,15 @@ class PCNMinerGUI():
         self.run_fr.pack_forget()
         
         #for each pyMOL session file -> create a button
+        
         for filepath in filepaths:
            
            filename = os.path.basename(filepath)
            
            label = tk.Label(self.results_fr, text = filename, bg = self.bg)
            label.pack()
-           photo_session = (tk.PhotoImage(file = r"{}button_open-pymol-session".format(self.gui_images_path))).subsample(2,2)
-           button = tk.Button(self.results_fr, text = "Open PyMOL session", bg = "green", image = photo_session, command = lambda:os.startfile(filepath))
+           photo_session = (tk.PhotoImage(file = r"{}button_open-pymol-session.png".format(self.gui_images_path))).subsample(2,2)
+           button = tk.Button(self.results_fr, text = "Open PyMOL session", image = photo_session, bg = "green", command = partial(os.startfile, filepath))
            button.image = photo_session
            button.pack()
         
