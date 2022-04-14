@@ -65,6 +65,8 @@ class PCNMinerGUI():
         #save the previous "scene" seen by the user, is used when the user click the Back Button
         self.previous_scene = "select_proteins"
         
+        self.bg = "dodger blue"
+        
         #true when user click the Back button
         self.isback = False
         #true when user click the Reset button
@@ -77,34 +79,38 @@ class PCNMinerGUI():
         self.window.title("PCN-Miner 0.9.1-alpha")
         self.window.rowconfigure(0, minsize=800, weight=1)
         self.window.columnconfigure(1, minsize=800, weight=1)
-        self.window.geometry('600x600+50+50')
+        self.window.geometry('800x800+50+50')
 
+        self.background_image=tk.PhotoImage(file = r"{}window-bg.png".format(self.gui_images_path))
+        background_label = tk.Label(self.window, image=self.background_image)
+        background_label.image = self.background_image
+        background_label.place(x=0, y=0)
+        
         #name of the program to display always on the top of the window
-        self.label_program_name = tk.Label(self.window, text = 'PCN-Miner 0.9.1-alpha', fg = 'black',
-                         font = (None, 30), height = 2)
+        self.label_program_name = tk.Label(self.window, text = 'PCN-Miner 0.9.1-alpha', fg = 'black', bg = "royal blue", font = (None, 30), height = 2)
+        self.label_program_name.image = self.background_image
         self.label_program_name.pack(side = tk.TOP)
         #window.iconbitmap('./assets/pythontutorial.ico') #icon
 
         #welcome message
         welcome = tk.Label(self.window, text="Protein Contact Network Miner 0.9.1-alpha \n  Software Available under CC-BY Licence \n  Free for Academic Usage ",
-                           foreground="black")  
+                           foreground="black", bg = "royal blue")
         welcome.pack()
         
         #string variable, "pdb" or "adj"
         self.choiceVar = tk.StringVar()
         
         #initialize frames
-        self.choice_fr = tk.Frame(self.window)         #for choose proteins to analyze, min and max distance threshold
-        self.analysis_fr = tk.Frame(self.window)       #for choose analysis approach on the PCN
-        self.cm_fr = tk.Frame(self.window)             #for choose centralities measure algorithm
-        self.sc_fr = tk.Frame(self.window)             #for choose spectral clustering algorithm   
-        self.cd_fr = tk.Frame(self.window)             #for choose community detection algorithm
-        self.ec_fr = tk.Frame(self.window)             #for choose embedding + clustering algorithm
-        self.comp_adj_fr = tk.Frame(self.window)       #for compute the adjacency matrixs (PCNs)
-        self.parameters_fr = tk.Frame(self.window)     #frame for entry parameters
-        self.run_fr = tk.Frame(self.window)            #frame for run analysis on the PCN
-        self.results_fr = tk.Frame(self.window)        #for display results
-        
+        self.choice_fr = tk.Frame(self.window, bg = self.bg)         #for choose proteins to analyze, min and max distance threshold
+        self.analysis_fr = tk.Frame(self.window, bg = self.bg)       #for choose analysis approach on the PCN
+        self.cm_fr = tk.Frame(self.window, bg = self.bg)             #for choose centralities measure algorithm
+        self.sc_fr = tk.Frame(self.window, bg = self.bg)             #for choose spectral clustering algorithm   
+        self.cd_fr = tk.Frame(self.window, bg = self.bg)             #for choose community detection algorithm
+        self.ec_fr = tk.Frame(self.window, bg = self.bg)             #for choose embedding + clustering algorithm
+        self.comp_adj_fr = tk.Frame(self.window, bg = self.bg)       #for compute the adjacency matrixs (PCNs)
+        self.parameters_fr = tk.Frame(self.window, bg = self.bg)     #frame for entry parameters
+        self.run_fr = tk.Frame(self.window, bg = self.bg)            #frame for run analysis on the PCN
+        self.results_fr = tk.Frame(self.window, bg = self.bg)        #for display results
         #initialize entries
         
         #paths user entry, to use when no config file exist
@@ -129,10 +135,10 @@ class PCNMinerGUI():
         self.walk_len_tk = tk.Entry(self.parameters_fr, text="Number of walks per node: ")
         
         #initialize menu buttons that enables the user to select multiple algorithms to use in the analysis
-        self.mb_cm = tk.Menubutton(self.cm_fr, text="Click here and Choose at least one centrality measure algorithm to use: ")
-        self.mb_ec = tk.Menubutton(self.ec_fr, text="Click here and Choose at least one embedding+clustering algorithm to use: ")
-        self.mb_sc = tk.Menubutton(self.sc_fr, text="Click here and Choose at least one spectral clustering algorithm to use: ")
-        self.mb_cd = tk.Menubutton(self.cd_fr, text="Click here and Choose at least one community detection algorithm to use: ")
+        self.mb_cm = tk.Menubutton(self.cm_fr, text="Click here and Choose at least one centrality measure algorithm to use: ", bg = "cyan")
+        self.mb_ec = tk.Menubutton(self.ec_fr, text="Click here and Choose at least one embedding+clustering algorithm to use: ", bg = "cyan")
+        self.mb_sc = tk.Menubutton(self.sc_fr, text="Click here and Choose at least one spectral clustering algorithm to use: ", bg = "cyan")
+        self.mb_cd = tk.Menubutton(self.cd_fr, text="Click here and Choose at least one community detection algorithm to use: ", bg = "cyan")
         
         #list of all selected algorithms  
         self.checked = list()
@@ -156,13 +162,14 @@ class PCNMinerGUI():
         self.text_error_label = ""
         
         #Start Analysis Button
-        self.initial_fr_button = tk.Frame(self.window)
+        self.initial_fr_button = tk.Frame(self.window, bg = self.bg)
         
         photo_initial = (tk.PhotoImage(file = r"{}button_press-this-button-to-continue.png".format(self.gui_images_path))).subsample(2,2)
         self.initial_button = tk.Button(
                                     self.initial_fr_button,
                                     text="Press this button to continue",
                                     image = photo_initial,
+                                    bg = "green",
                                     command = self.select_proteins
                                   )
         self.initial_button.image = photo_initial
@@ -184,12 +191,14 @@ class PCNMinerGUI():
         
         if self.isback or self.isreset:
             #if this page is loaded because the user press the back or the reset button we have to re-initialize all the frames used in the function
-            self.analysis_fr = tk.Frame(self.window)
+            self.analysis_fr = tk.Frame(self.window, bg = self.bg)
             
         #Some text that helps the user 
-        proteins_to_analyze_tk = tk.Label(self.analysis_fr, text = "List of proteins to analyze: {}".format(str(self.proteins_list)))
+        proteins_to_analyze_tk = tk.Label(self.analysis_fr, text = "List of proteins to analyze: {}".format(str(self.proteins_list)),bg = self.bg)
         proteins_to_analyze_tk.pack() 
-        method_analysis_tk = tk.Label(self.analysis_fr, text="Choose the method to use for the analysis of the PCNs: ")
+        
+        method_analysis_tk = tk.Label(self.analysis_fr, text="Choose the method to use for the analysis of the PCNs: ", bg = self.bg)
+        method_analysis_tk = self.background_image
         method_analysis_tk.pack()
         
         #buttons that enables the user to select the method approach to use
@@ -198,6 +207,7 @@ class PCNMinerGUI():
                             self.analysis_fr,
                             text="Spectral Clustering",
                             image = photo_spectral,
+                            bg = "green",
                             command = self.spectralClustering 
                              )
         sc_button.image = photo_spectral
@@ -208,6 +218,7 @@ class PCNMinerGUI():
                             self.analysis_fr,
                             text="Embedding + Clustering",
                             image = photo_ec,
+                            bg = "green",
                             command = self.embeddingClustering 
                              )
         ec_button.image = photo_ec
@@ -218,6 +229,7 @@ class PCNMinerGUI():
                             self.analysis_fr,
                             text="Community Detection",
                             image = photo_community,
+                            bg = "green",
                             command = self.communityDetection 
                              )
         cd_button.image = photo_community
@@ -228,6 +240,7 @@ class PCNMinerGUI():
                             self.analysis_fr,
                             text="Centrality Analysis",
                             image = photo_centrality,
+                            bg = "green",
                             command = self.centralityMeasure
                              )
         cm_button.image = photo_centrality
@@ -236,8 +249,8 @@ class PCNMinerGUI():
         #reset and back buttons
         photo_back = (tk.PhotoImage(file = r"{}button_back.png".format(self.gui_images_path))).subsample(2,2)
         photo_reset = (tk.PhotoImage(file = r"{}button_reset-analysis.png".format(self.gui_images_path))).subsample(2,2)
-        self.back_button = tk.Button(self.analysis_fr, text='Back', command = self.back, image = photo_back)
-        self.reset_button = tk.Button(self.analysis_fr, text='Reset Analysis', command = self.reset, image= photo_reset) 
+        self.back_button = tk.Button(self.analysis_fr, text='Back', command = self.back, bg = "green", image = photo_back)
+        self.reset_button = tk.Button(self.analysis_fr, text='Reset Analysis', command = self.reset, bg = "green", image= photo_reset) 
         self.back_button.image = photo_back
         self.reset_button.image = photo_reset 
         self.back_button.pack(side=tk.RIGHT)
@@ -292,7 +305,7 @@ class PCNMinerGUI():
         #for each protein in the protein list -> compute the adj matrix
         for protein in self.proteins_list:
                     
-            computing_A_label = tk.Label(self.comp_adj_fr, text="computing adjacency matrix for protein {}... (This may take time)".format(protein))    
+            computing_A_label = tk.Label(self.comp_adj_fr, text="computing adjacency matrix for protein {}... (This may take time)".format(protein), bg = self.bg)    
             computing_A_label.pack()
             self.comp_adj_fr.pack()
             self.window.update()
@@ -337,7 +350,7 @@ class PCNMinerGUI():
             dict_residue_names = pcn_final.associateResidueName(residues)
             self.proteins_residue_names[protein] = np.array(list (dict_residue_names.items()))              
             
-            reading_A_label = tk.Label(self.comp_adj_fr, text="reading adjacency matrix for protein {}... ".format(protein))
+            reading_A_label = tk.Label(self.comp_adj_fr, text="reading adjacency matrix for protein {}... ".format(protein), bg = self.bg)
             reading_A_label.pack()
             self.comp_adj_fr.pack()
             self.window.update()
@@ -359,10 +372,10 @@ class PCNMinerGUI():
         if self.isback or self.isreset:
             #if this page is loaded because the user press the back or the reset button we have to re-initialize some attributes
             self.checked = list()
-            self.cm_fr = tk.Frame(self.window)
-            self.mb_cm = tk.Menubutton(self.cm_fr, text="Click here and Choose at least one centrality measure algorithm to use: ")
+            self.cm_fr = tk.Frame(self.window, bg = self.bg)
+            self.mb_cm = tk.Menubutton(self.cm_fr, text="Click here and Choose at least one centrality measure algorithm to use: ", bg = "cyan")
             if self.text_error_label != "":
-                error_label = tk.Label(self.cm_fr, text = self.text_error_label, fg="red")
+                error_label = tk.Label(self.cm_fr, text = self.text_error_label, fg="red", bg = self.bg)
                 error_label.pack()
             self.text_error_label = ""
             
@@ -386,8 +399,8 @@ class PCNMinerGUI():
         photo_back = (tk.PhotoImage(file = r"{}button_back.png".format(self.gui_images_path))).subsample(2,2)
         photo_reset = (tk.PhotoImage(file = r"{}button_reset-analysis.png".format(self.gui_images_path))).subsample(2,2)
         
-        run_button = tk.Button(self.cm_fr, text="Run", image=photo_run, command=self.centralityMeasureRun)
-        self.back_button = tk.Button(self.cm_fr, text='Back', image = photo_back, command = self.back)
+        run_button = tk.Button(self.cm_fr, text="Run", image=photo_run, bg = "green", command=self.centralityMeasureRun)
+        self.back_button = tk.Button(self.cm_fr, text='Back', image = photo_back, bg = "green", command = self.back)
         self.reset_button = tk.Button(self.cm_fr, text='Reset Analysis', image= photo_reset, command = self.reset)    
         run_button.image = photo_run
         self.back_button.image = photo_back
@@ -409,13 +422,13 @@ class PCNMinerGUI():
             #if this page is loaded because the user press the back or the reset button we have to re-initialize some attributes
             
             self.checked = list()
-            self.sc_fr = tk.Frame(self.window)
-            self.parameters_fr = tk.Frame(self.window)
+            self.sc_fr = tk.Frame(self.window, bg = self.bg)
+            self.parameters_fr = tk.Frame(self.window, bg = self.bg)
             self.ks_tk = tk.Entry(self.parameters_fr, text="Number of clusters for clustering", width=100)
-            self.mb_sc = tk.Menubutton(self.sc_fr, text="Click here and Choose at least one spectral clustering algorithm to use: ")
+            self.mb_sc = tk.Menubutton(self.sc_fr, text="Click here and Choose at least one spectral clustering algorithm to use: ", bg = "cyan")
             
             if self.text_error_label != "":
-                error_label = tk.Label(self.sc_fr, text = self.text_error_label, fg="red")
+                error_label = tk.Label(self.sc_fr, text = self.text_error_label, fg="red", bg = self.bg)
                 error_label.pack()
             self.text_error_label = ""
  
@@ -433,7 +446,7 @@ class PCNMinerGUI():
         self.mb_sc.pack()
             
         #number of clusters parameter entry
-        ks_insert_label = tk.Label(self.parameters_fr, text="Enter number of clusters for spectral clustering: Enter an int, a list of ints splitted with ',': ")
+        ks_insert_label = tk.Label(self.parameters_fr, text="Enter number of clusters for spectral clustering: Enter an int, a list of ints splitted with ',': ", bg = self.bg)
         ks_insert_label.pack()
         self.ks_tk.pack()
         self.parameters_fr.pack()
@@ -444,9 +457,9 @@ class PCNMinerGUI():
         photo_back = (tk.PhotoImage(file = r"{}button_back.png".format(self.gui_images_path))).subsample(2,2)
         photo_reset = (tk.PhotoImage(file = r"{}button_reset-analysis.png".format(self.gui_images_path))).subsample(2,2)
         
-        run_button = tk.Button(self.sc_fr, text="Run", image=photo_run, command=self.spectralClusteringRun)
-        self.back_button = tk.Button(self.sc_fr, text='Back', command = self.back, image = photo_back)
-        self.reset_button = tk.Button(self.sc_fr, text='Reset Analysis', command = self.reset, image= photo_reset)    
+        run_button = tk.Button(self.sc_fr, text="Run", image=photo_run, bg = "green", command=self.spectralClusteringRun)
+        self.back_button = tk.Button(self.sc_fr, text='Back', command = self.back, bg = "green", image = photo_back)
+        self.reset_button = tk.Button(self.sc_fr, text='Reset Analysis', command = self.reset, bg = "green", image= photo_reset)    
         run_button.image = photo_run
         self.back_button.image = photo_back
         self.reset_button.image = photo_reset
@@ -465,13 +478,13 @@ class PCNMinerGUI():
         if self.isback or self.isreset:
             #if this page is loaded because the user press the back or the reset button we have to re-initialize some attributes
             self.checked = list()
-            self.cd_fr = tk.Frame(self.window)
-            self.mb_cd = tk.Menubutton(self.cd_fr, text="Click here and Choose at least one community detection algorithm to use: ")
-            self.parameters_fr = tk.Frame(self.window)
+            self.cd_fr = tk.Frame(self.window, bg = self.bg)
+            self.mb_cd = tk.Menubutton(self.cd_fr, text="Click here and Choose at least one community detection algorithm to use: ", bg="cyan")
+            self.parameters_fr = tk.Frame(self.window, bg = self.bg)
             self.ks_tk = tk.Entry(self.parameters_fr, text="Number of clusters for clustering", width=100)
             
             if self.text_error_label != "":
-                error_label = tk.Label(self.cd_fr, text = self.text_error_label, fg="red")
+                error_label = tk.Label(self.cd_fr, text = self.text_error_label, fg="red", bg = self.bg)
                 error_label.pack()
             self.text_error_label = ""
             self.reset_button.pack_forget()
@@ -489,7 +502,7 @@ class PCNMinerGUI():
         self.mb_cd.pack()
 
         #number of communities parameter entry, used only if Async FluidC algorithm is selected        
-        ks_insert_label = tk.Label(self.parameters_fr, text="Enter number of communities for Async FluidC algorithm: Enter an int or a list of ints splitted with ',': ")
+        ks_insert_label = tk.Label(self.parameters_fr, text="Enter number of communities for Async FluidC algorithm: Enter an int or a list of ints splitted with ',': ", bg = self.bg)
         ks_insert_label.pack()
         self.ks_tk.pack()
         self.parameters_fr.pack()
@@ -499,9 +512,9 @@ class PCNMinerGUI():
         photo_back = (tk.PhotoImage(file = r"{}button_back.png".format(self.gui_images_path))).subsample(2,2)
         photo_reset = (tk.PhotoImage(file = r"{}button_reset-analysis.png".format(self.gui_images_path))).subsample(2,2)
         
-        run_button = tk.Button(self.cd_fr, text="Run", image=photo_run, command=self.communityDetectionRun)
-        self.back_button = tk.Button(self.cd_fr, text='Back', command = self.back, image = photo_back)
-        self.reset_button = tk.Button(self.cd_fr, text='Reset Analysis', command = self.reset, image= photo_reset)    
+        run_button = tk.Button(self.cd_fr, text="Run", image=photo_run, bg = "green", command=self.communityDetectionRun)
+        self.back_button = tk.Button(self.cd_fr, text='Back', command = self.back, bg = "green", image = photo_back)
+        self.reset_button = tk.Button(self.cd_fr, text='Reset Analysis', command = self.reset, bg = "green", image= photo_reset)    
         run_button.image = photo_run
         self.back_button.image = photo_back
         self.reset_button.image = photo_reset
@@ -521,17 +534,17 @@ class PCNMinerGUI():
         if self.isback or self.isreset:
             #if this page is loaded because the user press the back or the reset button we have to re-initialize some attributes
             self.checked = list()
-            self.ec_fr = tk.Frame(self.window)
-            self.parameters_fr = tk.Frame(self.window)
+            self.ec_fr = tk.Frame(self.window, bg = self.bg)
+            self.parameters_fr = tk.Frame(self.window, bg = self.bg)
             self.ks_tk = tk.Entry(self.parameters_fr, text="Number of clusters for clustering", width=100)
             self.d_tk = tk.Entry(self.parameters_fr, text="d-dimensional embedding: ")
             self.beta_tk = tk.Entry(self.parameters_fr, text="decay factor HOPE embedding: ")
             self.num_walks_tk = tk.Entry(self.parameters_fr, text="Random walk lenght: ")
             self.walk_len_tk = tk.Entry(self.parameters_fr, text="Number of walks per node: ")
-            self.mb_ec = tk.Menubutton(self.ec_fr, text="Click here and Choose at least one embedding+clustering algorithm to use: ")
+            self.mb_ec = tk.Menubutton(self.ec_fr, text="Click here and Choose at least one embedding+clustering algorithm to use: ", bg = "cyan")
             
             if self.text_error_label != "":
-                error_label = tk.Label(self.ec_fr, text = self.text_error_label, fg="red")
+                error_label = tk.Label(self.ec_fr, text = self.text_error_label, fg="red", bg = self.bg)
                 error_label.pack()
             self.reset_button.pack_forget()
             self.text_error_label = ""   
@@ -550,26 +563,26 @@ class PCNMinerGUI():
         self.mb_ec.pack()
         
         #number of clusters parameter entry           
-        ks_insert_label = tk.Label(self.parameters_fr, text="Enter number of clusters for embedding + clustering algorithm: Enter an int or a list of ints splitted with ',': ")
+        ks_insert_label = tk.Label(self.parameters_fr, text="Enter number of clusters for embedding + clustering algorithm: Enter an int or a list of ints splitted with ',': ", bg = self.bg)
         ks_insert_label.pack()
         self.ks_tk.pack()
         
         #d parameter entry for d-dimensional embedding
-        d_insert_label = tk.Label(self.parameters_fr, text=" Enter d parameter for d-dimensional embedding: ")
+        d_insert_label = tk.Label(self.parameters_fr, text=" Enter d parameter for d-dimensional embedding: ", bg = self.bg)
         d_insert_label.pack()
         self.d_tk.pack()
         
         #beta parameter entry for HOPE embedding
-        beta_insert_label = tk.Label(self.parameters_fr, text="Enter beta parameter for HOPE embedding: ")
+        beta_insert_label = tk.Label(self.parameters_fr, text="Enter beta parameter for HOPE embedding: ", bg = self.bg)
         beta_insert_label.pack()
         self.beta_tk.pack()
         
         #number of walks and walk lenght for node2vec embedding
-        num_walks_insert_label = tk.Label(self.parameters_fr, text="Enter the lenght of each random walk: ")
+        num_walks_insert_label = tk.Label(self.parameters_fr, text="Enter the lenght of each random walk: ", bg = self.bg)
         num_walks_insert_label.pack()
         self.num_walks_tk.pack()
          
-        walk_len_insert_label = tk.Label(self.parameters_fr, text="Enter the number of walks per node: ")
+        walk_len_insert_label = tk.Label(self.parameters_fr, text="Enter the number of walks per node: ", bg = self.bg)
         walk_len_insert_label.pack()
         self.walk_len_tk.pack()
         
@@ -580,9 +593,9 @@ class PCNMinerGUI():
         photo_back = (tk.PhotoImage(file = r"{}button_back.png".format(self.gui_images_path))).subsample(2,2)
         photo_reset = (tk.PhotoImage(file = r"{}button_reset-analysis.png".format(self.gui_images_path))).subsample(2,2)
         
-        run_button = tk.Button(self.ec_fr, text="Run", image=photo_run, command=self.embeddingClusteringRun)
-        self.back_button = tk.Button(self.ec_fr, text='Back', command = self.back, image = photo_back)
-        self.reset_button = tk.Button(self.ec_fr, text='Reset Analysis', command = self.reset, image= photo_reset)    
+        run_button = tk.Button(self.ec_fr, text="Run", image=photo_run, bg = "green", command=self.embeddingClusteringRun)
+        self.back_button = tk.Button(self.ec_fr, text='Back', command = self.back, bg = "green", image = photo_back)
+        self.reset_button = tk.Button(self.ec_fr, text='Reset Analysis', command = self.reset, bg = "green", image= photo_reset)    
         run_button.image = photo_run
         self.back_button.image = photo_back
         self.reset_button.image = photo_reset
@@ -628,14 +641,14 @@ class PCNMinerGUI():
                     
                     method_to_call = getattr(pcn_final, centrality_choice) 
 
-                    compute_tk = tk.Label(self.run_fr, text="Compute {} node centrality for protein {}...".format(centrality_choice, protein)) 
+                    compute_tk = tk.Label(self.run_fr, text="Compute {} node centrality for protein {}...".format(centrality_choice, protein), bg = self.bg) 
                     compute_tk.pack()
                     self.window.update()
                     centrality_measures = method_to_call(G, residue_names_1)#call the supported method from the pcn_final file
                     
                     pcn_final.save_centralities(self.output_path, centrality_measures, protein, centrality_choice) #save a txt file 
 
-                    plot_tk = tk.Label(self.run_fr, text="Plot {} node centrality for protein {}".format(centrality_choice, protein))
+                    plot_tk = tk.Label(self.run_fr, text="Plot {} node centrality for protein {}".format(centrality_choice, protein), bg = self.bg)
                     plot_tk.pack()
                     self.window.update()
                     pcn_pymol_scripts.pymol_plot_centralities(self.output_path, centrality_measures, protein_path, centrality_choice, self.run_fr, self.window) #plot and save centralities with pymol
@@ -694,20 +707,20 @@ class PCNMinerGUI():
                         
                         method_to_call = getattr(pcn_final, algorithm_choice)
                         
-                        compute_tk = tk.Label(self.run_fr, text="Compute {} spectral clustering with k = {} for protein {}...".format(algorithm_choice, k, protein)) 
+                        compute_tk = tk.Label(self.run_fr, text="Compute {} spectral clustering with k = {} for protein {}...".format(algorithm_choice, k, protein), bg = self.bg) 
                         compute_tk.pack()
                         self.window.update()
                         labels = method_to_call(adj, n_clusters=k)
                         pcn_final.save_labels(self.output_path, labels, residue_names, protein, algorithm_choice, self.d, self.beta, self.walk_len, self.num_walks)
                         
-                        plot_tk = tk.Label(self.run_fr, text="Plot {} spectral clustering with k = {} for protein {}...".format(algorithm_choice, k, protein))
+                        plot_tk = tk.Label(self.run_fr, text="Plot {} spectral clustering with k = {} for protein {}...".format(algorithm_choice, k, protein), bg = self.bg)
                         plot_tk.pack()
                         self.window.update()
                         pcn_pymol_scripts.pymol_plot(protein_path, self.output_path, "Clusters", algorithm_choice, k, self.run_fr, self.window)
                         filepath = "{}{}{}Sessions{}{}_{}_{}_{}{}_session.pse".format(self.output_path, algorithm_choice, self.add_slash_to_path, self.add_slash_to_path, protein, "Clusters", algorithm_choice, "k", k)
                         filepaths.append(filepath)
                         
-                        plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {} spectral clustering and k = {} for protein {}...".format(algorithm_choice, k, protein))
+                        plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {} spectral clustering and k = {} for protein {}...".format(algorithm_choice, k, protein), bg = self.bg)
                         plot_p_tk.pack()
                         self.window.update()
                         p = pcn_final.participation_coefs(G, labels, residue_names_1)
@@ -772,19 +785,19 @@ class PCNMinerGUI():
                         #for each protein and for each number of communities k to try -> compute, save and plot communities extracted with Asyn FluidC
                         for k in self.ks:
                                     
-                            compute_tk = tk.Label(self.run_fr, text="Compute Asyn FluidC communities with k = {} for protein {}...".format(k, protein)) 
+                            compute_tk = tk.Label(self.run_fr, text="Compute Asyn FluidC communities with k = {} for protein {}...".format(k, protein), bg = self.bg) 
                             compute_tk.pack()
                             self.window.update()
                             labels = method_to_call(G, k) #call the method
                             pcn_final.save_labels(self.output_path, labels, residue_names, protein,  method=algorithm_choice) #save the communities as txt file
                             
-                            plot_tk = tk.Label(self.run_fr, text="Plot Asyn FluidC with k = {} for protein {}...".format(k, protein))
+                            plot_tk = tk.Label(self.run_fr, text="Plot Asyn FluidC with k = {} for protein {}...".format(k, protein), bg = self.bg)
                             plot_tk.pack()
                             self.window.update()
                             pcn_pymol_scripts.pymol_plot(protein_path, self.output_path, "Communities", algorithm_choice, k, self.run_fr, self.window) #plot and save the communities with pymol
                             filepath = "{}{}{}Sessions{}{}_{}_{}_{}{}_session.pse".format(self.output_path, algorithm_choice, self.add_slash_to_path, self.add_slash_to_path, protein, "Communities", algorithm_choice, "ncoms", k)
                             filepaths.append(filepath)
-                            plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with Asyn FluidC and k = {} for protein {}...".format(k, protein))
+                            plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with Asyn FluidC and k = {} for protein {}...".format(k, protein), bg = self.bg)
                             plot_p_tk.pack()
                             self.window.update()                   
                             p = pcn_final.participation_coefs(G, labels, residue_names_1)
@@ -796,21 +809,21 @@ class PCNMinerGUI():
                     
                     else:#if the community detection algorithm is not Asyn Fluidc, no need to specify the number of communities
                         
-                        compute_tk = tk.Label(self.run_fr, text="Compute {} communities for protein {}...".format(algorithm_choice, protein)) 
+                        compute_tk = tk.Label(self.run_fr, text="Compute {} communities for protein {}...".format(algorithm_choice, protein), bg = self.bg) 
                         compute_tk.pack()
                         self.window.update()
                         labels = method_to_call(G) #call the method 
                         n_coms = int( max(labels) + 1)
                         pcn_final.save_labels(self.output_path, labels, residue_names, protein,  method=algorithm_choice) #save communities as txt 
                         
-                        plot_tk = tk.Label(self.run_fr, text="Plot {} with ncoms = {} for protein {}...".format(algorithm_choice, n_coms, protein))
+                        plot_tk = tk.Label(self.run_fr, text="Plot {} with ncoms = {} for protein {}...".format(algorithm_choice, n_coms, protein), bg = self.bg)
                         plot_tk.pack()
                         self.window.update()
                         pcn_pymol_scripts.pymol_plot(protein_path, self.output_path, "Communities", algorithm_choice, n_coms, self.run_fr, self.window) #plot and save communities with pymol
                         filepath = "{}{}{}Sessions{}{}_{}_{}_{}{}_session.pse".format(self.output_path, algorithm_choice, self.add_slash_to_path, self.add_slash_to_path, protein, "Communities", algorithm_choice, "ncoms", n_coms)
                         filepaths.append(filepath)
                         
-                        plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {} and ncoms = {} for protein {}...".format(algorithm_choice, n_coms, protein))
+                        plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {} and ncoms = {} for protein {}...".format(algorithm_choice, n_coms, protein), bg = self.bg)
                         plot_p_tk.pack()
                         self.window.update()                   
                         p = pcn_final.participation_coefs(G, labels, residue_names_1)
@@ -903,14 +916,14 @@ class PCNMinerGUI():
                     for k in self.ks:
 
                         method_to_call = getattr(pcn_final, algorithm_choice)
-                        compute_tk = tk.Label(self.run_fr, text="Compute {} embedding + clustering with k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein)) 
+                        compute_tk = tk.Label(self.run_fr, text="Compute {} embedding + clustering with k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein), bg = self.bg) 
                         compute_tk.pack()
                         self.run_fr.pack()
                         self.window.update()
                         labels = method_to_call(adj, n_clusters=k, d=self.d, beta=self.beta, walk_len=self.walk_len, num_walks=self.num_walks)
                         pcn_final.save_labels(self.output_path, labels, residue_names, protein, algorithm_choice, self.d, self.beta, self.walk_len, self.num_walks)
                         
-                        plot_tk = tk.Label(self.run_fr, text="Plot {} embedding + clustering with k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein)) 
+                        plot_tk = tk.Label(self.run_fr, text="Plot {} embedding + clustering with k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein), bg = self.bg) 
                         plot_tk.pack()
                         self.run_fr.pack()
                         self.window.update()
@@ -927,7 +940,7 @@ class PCNMinerGUI():
                             
                         filepaths.append(filepath)
                         
-                        plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {}, k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein)) 
+                        plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {}, k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein), bg = self.bg) 
                         plot_p_tk.pack()
                         self.run_fr.pack()
                         self.window.update() 
@@ -997,16 +1010,16 @@ class PCNMinerGUI():
            
            filename = os.path.basename(filepath)
            
-           label = tk.Label(self.results_fr, text = filename)
+           label = tk.Label(self.results_fr, text = filename, bg = self.bg)
            label.pack()
            photo_session = (tk.PhotoImage(file = r"{}button_open-pymol-session".format(self.gui_images_path))).subsample(2,2)
-           button = tk.Button(self.results_fr, text = "Open PyMOL session", image = photo_session, command = lambda:os.startfile(filepath))
+           button = tk.Button(self.results_fr, text = "Open PyMOL session", bg = "green", image = photo_session, command = lambda:os.startfile(filepath))
            button.image = photo_session
            button.pack()
         
         #only reset button, we are at the end 
         photo_reset = (tk.PhotoImage(file = r"{}button_reset-analysis.png".format(self.gui_images_path))).subsample(2,2)
-        self.reset_button = tk.Button(self.results_fr, text='Reset Analysis', command = self.reset, image= photo_reset)  
+        self.reset_button = tk.Button(self.results_fr, text='Reset Analysis', command = self.reset, bg = "green", image= photo_reset)  
         self.reset_button.image = photo_reset
 
         self.results_fr.pack()    
@@ -1023,8 +1036,8 @@ class PCNMinerGUI():
         """
         if self.isback:
             
-            self.choice_fr = tk.Frame(self.window)
-            self.comp_adj_fr = tk.Frame(self.window)
+            self.choice_fr = tk.Frame(self.window, bg = self.bg)
+            self.comp_adj_fr = tk.Frame(self.window, bg = self.bg)
             self.proteins_tk = tk.Entry(self.choice_fr, text='PDBs codes:', width=100)
             self.min_tk = tk.Entry(self.choice_fr, text='Min threshold:')
             self.max_tk = tk.Entry(self.choice_fr, text='Max threshold:')
@@ -1034,16 +1047,16 @@ class PCNMinerGUI():
             
         if self.isreset:    
             
-            self.choice_fr = tk.Frame(self.window)
-            self.analysis_fr = tk.Frame(self.window)
-            self.cm_fr = tk.Frame(self.window)
-            self.sc_fr = tk.Frame(self.window)
-            self.cd_fr = tk.Frame(self.window)
-            self.ec_fr = tk.Frame(self.window)
-            self.parameters_fr = tk.Frame(self.window)
-            self.comp_adj_fr = tk.Frame(self.window)
-            self.run_fr = tk.Frame(self.window)
-            self.results_fr = tk.Frame(self.window)
+            self.choice_fr = tk.Frame(self.window, bg = self.bg)
+            self.analysis_fr = tk.Frame(self.window, bg = self.bg)
+            self.cm_fr = tk.Frame(self.window, bg = self.bg)
+            self.sc_fr = tk.Frame(self.window, bg = self.bg)
+            self.cd_fr = tk.Frame(self.window, bg = self.bg)
+            self.ec_fr = tk.Frame(self.window, bg = self.bg)
+            self.parameters_fr = tk.Frame(self.window, bg = self.bg)
+            self.comp_adj_fr = tk.Frame(self.window, bg = self.bg)
+            self.run_fr = tk.Frame(self.window, bg = self.bg)
+            self.results_fr = tk.Frame(self.window, bg = self.bg)
         
             self.proteins_tk = tk.Entry(self.choice_fr, text='PDBs codes:', width=100)
             self.min_tk = tk.Entry(self.choice_fr, text='Min threshold:')
@@ -1058,30 +1071,30 @@ class PCNMinerGUI():
             self.output_path = paths["output_path"]
             self.proteins_path = paths["proteins_path"]
             self.adj_filespath = paths["adj_filespath"]
-            paths = tk.Label(self.choice_fr, text="Paths in the config file: \n  output path = {} \n  proteins_path = {} \n  adj_filespath = {}".format(self.output_path, self.proteins_path, self.adj_filespath))
+            paths = tk.Label(self.choice_fr, text="Paths in the config file: \n  output path = {} \n  proteins_path = {} \n  adj_filespath = {}".format(self.output_path, self.proteins_path, self.adj_filespath), bg = self.bg)
             paths.pack(pady=0)
           
         else:
             
             self.config = False
             
-            proteins_path_label = tk.Label(self.choice_fr, text = "Insert Proteins PDB directory:")
+            proteins_path_label = tk.Label(self.choice_fr, text = "Insert Proteins PDB directory:", bg = self.bg)
             proteins_path_label.pack()
             self.proteins_path_tk.pack()
         
-            adj_path_label = tk.Label(self.choice_fr, text = "Insert Adjacency matrixs directory:")
+            adj_path_label = tk.Label(self.choice_fr, text = "Insert Adjacency matrixs directory:", bg = self.bg)
             adj_path_label.pack()
             self.adj_filespath_tk.pack()
             
-            output_path_label = tk.Label(self.choice_fr, text = "Insert Output directory:")
+            output_path_label = tk.Label(self.choice_fr, text = "Insert Output directory:", bg = self.bg)
             output_path_label.pack()
             self.output_path_tk.pack()
 
-        proteins_insert_label = tk.Label(self.choice_fr, text="Please Insert Protein PDB Identifiers, separated by comma, without .pdb, e.g. 7nxc for 7nxc.pdb")
+        proteins_insert_label = tk.Label(self.choice_fr, text="Please Insert Protein PDB Identifiers, separated by comma, without .pdb, e.g. 7nxc for 7nxc.pdb", bg = self.bg)
         proteins_insert_label.pack()
         self.proteins_tk.pack()
           
-        adj_pdb_choice = tk.Label(self.choice_fr, text="Format File Input: PDB structures or Preprocessed PCN")
+        adj_pdb_choice = tk.Label(self.choice_fr, text="Format File Input: PDB structures or Preprocessed PCN", bg = self.bg)
         adj_pdb_choice.pack()
          
         choices = ("pdb", "adj")
@@ -1089,11 +1102,11 @@ class PCNMinerGUI():
         cb = ttk.Combobox(self.choice_fr, textvariable=self.choiceVar, values=choices)
         cb.pack()
           
-        min_insert_label = tk.Label(self.choice_fr, text="Please enter non covalent bonds threshold distance for PCN costruction")
+        min_insert_label = tk.Label(self.choice_fr, text="Please enter non covalent bonds threshold distance for PCN costruction", bg = self.bg)
         min_insert_label.pack()  
         self.min_tk.pack()
 
-        max_insert_label = tk.Label(self.choice_fr, text="Please enter only significant bonds threshold distance for PCN costruction")
+        max_insert_label = tk.Label(self.choice_fr, text="Please enter only significant bonds threshold distance for PCN costruction", bg = self.bg)
         max_insert_label.pack()
         self.max_tk.pack()
         
@@ -1102,6 +1115,7 @@ class PCNMinerGUI():
                                 self.choice_fr,
                                 text="Compute PCNs",
                                 image = photo_submit,
+                                bg = "green",
                                 command = self.computeOrReadPCN
                                 )
         submit_button.image = photo_submit
