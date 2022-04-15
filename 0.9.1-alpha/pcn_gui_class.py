@@ -1017,7 +1017,7 @@ class PCNMinerGUI():
            if platform == "win32":
               button = tk.Button(self.results_fr, text = "Open PyMOL session", image = photo_session, bg = "green", command = partial(os.startfile, filepath))
            else:
-           	button = tk.Button(self.results_fr, text = "Open PyMOL session", image = photo_session, bg = "green", command = partial(subprocess.run, ["pymol", str(filepath)]))
+           	button = tk.Button(self.results_fr, text = "Open PyMOL session", image = photo_session, bg = "green", command = partial(subprocess.run, ["pymol", filepath]))
            button.image = photo_session
            button.pack()
         
@@ -1082,15 +1082,15 @@ class PCNMinerGUI():
             
             self.config = False
             
-            proteins_path_label = tk.Label(self.choice_fr, text = "Insert Proteins PDB directory:", bg = self.bg)
+            proteins_path_label = tk.Label(self.choice_fr, text = "Local  PDB path:", bg = self.bg)
             proteins_path_label.pack()
             self.proteins_path_tk.pack()
         
-            adj_path_label = tk.Label(self.choice_fr, text = "Insert Adjacency matrixs directory:", bg = self.bg)
+            adj_path_label = tk.Label(self.choice_fr, text = "Directory of Adjacency matrices:", bg = self.bg)
             adj_path_label.pack()
             self.adj_filespath_tk.pack()
             
-            output_path_label = tk.Label(self.choice_fr, text = "Insert Output directory:", bg = self.bg)
+            output_path_label = tk.Label(self.choice_fr, text = "Output directory:", bg = self.bg)
             output_path_label.pack()
             self.output_path_tk.pack()
 
