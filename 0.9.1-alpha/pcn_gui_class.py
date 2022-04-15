@@ -77,7 +77,7 @@ class PCNMinerGUI():
                     
         #Initialize and set some parameters for the GUI window
         self.window = master
-        self.window.title("PCN-Miner 0.9.1-alpha")
+        self.window.title("PCN-Miner")
         self.window.rowconfigure(0, minsize=800, weight=1)
         self.window.columnconfigure(1, minsize=800, weight=1)
         self.window.geometry('800x800+50+50')
@@ -94,7 +94,7 @@ class PCNMinerGUI():
         #window.iconbitmap('./assets/pythontutorial.ico') #icon
 
         #welcome message
-        welcome = tk.Label(self.window, text="Protein Contact Network Miner 0.9.1-alpha \n  Software Available under CC-BY Licence \n  Free for Academic Usage ",
+        welcome = tk.Label(self.window, text="Protein Contact Network Miner  \n  Software Available under CC-BY Licence \n  Free for Academic Usage \n Magna Graecia University of Catanzaro ",
                            foreground="black", bg = "royal blue")
         welcome.pack()
         
@@ -446,7 +446,10 @@ class PCNMinerGUI():
         self.mb_sc.pack()
             
         #number of clusters parameter entry
-        ks_insert_label = tk.Label(self.parameters_fr, text="Enter number of clusters for spectral clustering: Enter an int, a list of ints splitted with ',': ", bg = self.bg)
+        ks_insert_label0 = tk.Label(self.parameters_fr, text=" Spectral Clustering Window you have to choose the number of clusters and the algorithm',': ", bg = self.bg)
+        ks_insert_label0.pack()
+        self.ks_tk.pack()
+        ks_insert_label = tk.Label(self.parameters_fr, text="Please Specify Number of Clusters: Enter an int, a list of ints splitted with ',': ", bg = self.bg)
         ks_insert_label.pack()
         self.ks_tk.pack()
         self.parameters_fr.pack()
@@ -467,7 +470,12 @@ class PCNMinerGUI():
             
         run_button.pack()
         self.back_button.pack()
-        self.reset_button.pack()    
+        self.reset_button.pack()
+        self.tt=tk.Text(self)
+        self.tt.insert("Hello.....")
+        #text.insert(END, "Bye Bye.....")
+        self.text.pack()
+        
         
     def communityDetection(self):
         """

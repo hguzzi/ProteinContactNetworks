@@ -14,6 +14,15 @@ import warnings
 import os
 import base64 
 from sys import platform
+from multiprocessing import Pool
+import datetime
+import itertools
+import cdlib
+import matplotlib.pyplot as plt
+import networkx as nx
+
+
+
 
 #tk GUI progress bar
 import tkinter as tk
@@ -51,7 +60,7 @@ elif platform == "win32":
 def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None):
     """
         Given a list of 'pdb' files or 'adj' files the algorithm:
-            in case of initial_choice='adj' will check if the adjacency matrix file of the given protein really exists in the "adj_path" and it will check if the pdb file exists in the protein_path
+            in case of initial_choice='adj' will check if the adjacency cfx file of the given protein really exists in the "adj_path" and it will check if the pdb file exists in the protein_path
             in case of initial_choice='pdb' will check if the pdb file exists in the protein_path
         Parameters:
             files: list of string, list of files 
@@ -126,6 +135,9 @@ def readPDBFile(pdbFilePath):
     Returns:
         atoms: np.array, contains all the informations contained in the 'ATOM' key of the pdb files. 
     """
+    datetime_object = datetime.datetime.now()
+    print('Start Reading PDB'+'\n')
+    print(datetime_object)
     atoms = []
     with open(pdbFilePath) as pdbfile:
         for line in pdbfile:
@@ -133,7 +145,9 @@ def readPDBFile(pdbFilePath):
                 #split the line
                 splitted_line = [line[:6], line[6:11], line[12:16], line[17:20], line[21], line[22:26], line[30:38], line[38:46], line[46:54], line[56:61], line[62:66]]
                 atoms.append(splitted_line)
-
+    datetime_object = datetime.datetime.now()
+    print('End Reading PDB'+'\n')
+    print(datetime_object)
     return np.array(atoms)    
     
 def getResidueDistance(atoms):
@@ -517,11 +531,16 @@ def louvain(G):
     Returns:
         labels: numpy.array, the extracted communities
     """
+    datetime_object = datetime.datetime.now()
+    print('Start Reading Louvain'+'\n')
+    print(datetime_object)
     louvain = algorithms.louvain(G)
     coms = louvain.communities
     num_walks = G.number_of_nodes()
     labels = extract_labels_from_coms(num_walks, coms, "Louvain")
-
+    datetime_object = datetime.datetime.now()
+    print('End Louvain'+'\n')
+    print(datetime_object)
     return labels
 
 def leiden(G):
@@ -533,11 +552,16 @@ def leiden(G):
     Returns:
         labels: numpy.array, the extracted communities
     """
+    datetime_object = datetime.datetime.now()
+    print('Start Leiden'+'\n')
+    print(datetime_object)
     leiden = algorithms.leiden(G)
     coms = leiden.communities
     num_walks = G.number_of_nodes()
     labels = extract_labels_from_coms(num_walks, coms, "Leiden")
-
+    datetime_object = datetime.datetime.now()
+    print('End Leiden'+'\n')
+    print(datetime_object)
     return labels  
  
 def walktrap(G):
@@ -549,11 +573,16 @@ def walktrap(G):
     Returns:
         labels: numpy.array, the extracted communities
     """
+    datetime_object = datetime.datetime.now()
+    print('Start walktrap'+'\n')
+    print(datetime_object)
     walktrap = algorithms.walktrap(G)
     coms = walktrap.communities
     num_walks = G.number_of_nodes()
     labels = extract_labels_from_coms(num_walks, coms, "Walktrap")
-      
+    datetime_object = datetime.datetime.now()
+    print('End walktrap'+'\n')
+    print(datetime_object) 
     return labels
   
 def greedy_modularity(G):
@@ -580,10 +609,15 @@ def infomap(G):
     Returns:
         labels: numpy.array, the extracted communities
     """
+    datetime_object = datetime.datetime.now()
+    print('Start Infomap'+'\n')
+    print(datetime_object)
     coms = algorithms.infomap(G).communities
     num_walks = G.number_of_nodes()
     labels = extract_labels_from_coms(num_walks, coms, "Infomap")
-
+    datetime_object = datetime.datetime.now()
+    print('End Infomap'+'\n')
+    print(datetime_object)
     return labels
 
 def asyn_fluidc(G, k):
@@ -595,11 +629,18 @@ def asyn_fluidc(G, k):
     Returns:
         labels: numpy.array, the extracted communities
     """
-    coms = asyn_fluidc_(G, k)
+    datetime_object = datetime.datetime.now()
+    print('Start Async'+'\n')
+    print(datetime_object)
+    largest_cc = max(nx.connected_components(G), key=len)
+    G=largest_cc
+    coms = asyn_fluidc_(max(nx.connected_components(G), key=len), k)
     num_walks = G.number_of_nodes()
     print("number of Asyn FluidC communities: {}".format(k))
     labels = extract_labels_from_coms(num_walks, coms, "Asyn FluidC")
-  
+    datetime_object = datetime.datetime.now()
+    print('End Async'+'\n')
+    print(datetime_object)
     return labels
   
 def spinglass(G):
@@ -611,7 +652,9 @@ def spinglass(G):
     Returns:
         labels: numpy.array, the extracted communities
     """
-    coms = algorithms.spinglass(G).communities
+    largest_cc = max(nx.connected_components(G), key=len)
+    G=largest_cc
+    coms = cdlib.algorithms.spinglass(G)
     num_walks = G.number_of_nodes()
     labels = extract_labels_from_coms(num_walks, coms, "Spin Glass")
   
@@ -1028,6 +1071,7 @@ def betweenness(G, residue_names_1, n=10):
         centralities: dict {node: P_coef[node]}, for each node is linked its betweenness centrality
     """
     bc = betweenness_centrality(G)
+    #bc= betweenness_centrality_parallel(G)
     bc = {int (float (k)):v for k,v in bc.items()}
     dict_node_centrality = dict ()
     
@@ -1213,3 +1257,38 @@ def color_map_clustering(clusters):
     plt.matshow(cluster_map, vmin=0, vmax=max(clusters)+1, cmap='inferno', fignum=1)
     plt.legend(labels=labels_unique)
     plt.show()
+    
+def chunks(l, n):
+    """Divide a list of nodes `l` in `n` chunks"""
+    l_c = iter(l)
+    while 1:
+        x = tuple(itertools.islice(l_c, n))
+        if not x:
+            return
+        yield x
+
+
+def betweenness_centrality_parallel(G, processes=None):
+    """Parallel betweenness centrality  function"""
+    p = Pool(processes=processes)
+    node_divisor = len(p._pool) * 4
+    node_chunks = list(chunks(G.nodes(), int(G.order() / node_divisor)))
+    num_chunks = len(node_chunks)
+    bt_sc = p.starmap(
+        nx.betweenness_centrality_subset,
+        zip(
+            [G] * num_chunks,
+            node_chunks,
+            [list(G)] * num_chunks,
+            [True] * num_chunks,
+            [None] * num_chunks,
+        ),
+    )
+
+    # Reduce the partial solutions
+    bt_c = bt_sc[0]
+    for bt in bt_sc[1:]:
+        for n in bt:
+            bt_c[n] += bt[n]
+    return bt_c
+
