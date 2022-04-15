@@ -1014,10 +1014,10 @@ class PCNMinerGUI():
            label = tk.Label(self.results_fr, text = filename, bg = self.bg)
            label.pack()
            photo_session = (tk.PhotoImage(file = r"{}button_open-pymol-session.png".format(self.gui_images_path))).subsample(2,2)
-           #if sys.platform == "win32":
-           #   button = tk.Button(self.results_fr, text = "Open PyMOL session", image = photo_session, bg = "green", command = partial(os.startfile, filepath))
-           #else:
-           button = tk.Button(self.results_fr, text = "Open PyMOL session", image = photo_session, bg = "green", command = partial(subprocess.call, filepath, shell=True))
+           if platform == "win32":
+              button = tk.Button(self.results_fr, text = "Open PyMOL session", image = photo_session, bg = "green", command = partial(os.startfile, filepath))
+           else:
+           	button = tk.Button(self.results_fr, text = "Open PyMOL session", image = photo_session, bg = "green", command = partial(subprocess.run, ["pymol", str(filepath)]))
            button.image = photo_session
            button.pack()
         
