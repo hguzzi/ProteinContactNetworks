@@ -3,7 +3,6 @@
 
 echo $OSTYPE	
 	
-		
 echo "Installing libraries"
 pip install scipy
 pip install regex

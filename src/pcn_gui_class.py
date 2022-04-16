@@ -1,6 +1,6 @@
 import os
 import networkx as nx
-import pcn_final
+import pcn_miner
 import numpy as np
 from scipy.linalg import eigh
 import pcn_pymol_scripts
@@ -300,7 +300,7 @@ class PCNMinerGUI():
                 pdb_list[i] = protein+'.pdb'
         
         #check if the pdb files exists in the proteins directory, if a protein pdb doesn't exists in the directory the software download the pdb
-        pcn_final.checkIfFilesExists(pdb_list, "pdb", self.proteins_path)   
+        pcn_miner.checkIfFilesExists(pdb_list, "pdb", self.proteins_path)   
         
         #for each protein in the protein list -> compute the adj matrix
         for protein in self.proteins_list:
@@ -311,12 +311,12 @@ class PCNMinerGUI():
             self.window.update()
             
             protein_path = self.proteins_path+protein+".pdb"
-            atoms = pcn_final.readPDBFile(protein_path) 
-            residues = pcn_final.getResidueDistance(atoms) 
-            dict_residue_names = pcn_final.associateResidueName(residues)
+            atoms = pcn_miner.readPDBFile(protein_path) 
+            residues = pcn_miner.getResidueDistance(atoms) 
+            dict_residue_names = pcn_miner.associateResidueName(residues)
             self.proteins_residue_names[protein] = np.array(list (dict_residue_names.items()))              
             
-            self.adj_matrixs[protein] = pcn_final.adjacent_matrix(self.output_path, residues, protein, self.min_, self.max_, self.comp_adj_fr, self.window)
+            self.adj_matrixs[protein] = pcn_miner.adjacent_matrix(self.output_path, residues, protein, self.min_, self.max_, self.comp_adj_fr, self.window)
         
         #next scene
         self.userAnalysisChoice()
@@ -339,15 +339,15 @@ class PCNMinerGUI():
         #list of adj matrix file name 
         adj_list = [protein.casefold()+"_adj_mat_{}_{}.txt".format(self.min_, self.max_) for protein in self.proteins_list]
         #check if the adj files exists in the proteins directory, if the adj of the protein doesn't exists in the directory the software will compute it
-        pcn_final.checkIfFilesExists(adj_list, "adj", self.proteins_path, self.adj_filespath, self.comp_adj_fr, self.window)
+        pcn_miner.checkIfFilesExists(adj_list, "adj", self.proteins_path, self.adj_filespath, self.comp_adj_fr, self.window)
         
         #for each protein in the protein list -> read the adjacency matrix
         for protein in self.proteins_list:
             
             protein_path = self.proteins_path+protein+".pdb"
-            atoms = pcn_final.readPDBFile(protein_path) 
-            residues = pcn_final.getResidueDistance(atoms) 
-            dict_residue_names = pcn_final.associateResidueName(residues)
+            atoms = pcn_miner.readPDBFile(protein_path) 
+            residues = pcn_miner.getResidueDistance(atoms) 
+            dict_residue_names = pcn_miner.associateResidueName(residues)
             self.proteins_residue_names[protein] = np.array(list (dict_residue_names.items()))              
             
             reading_A_label = tk.Label(self.comp_adj_fr, text="reading adjacency matrix for protein {}... ".format(protein), bg = self.bg)
@@ -355,7 +355,7 @@ class PCNMinerGUI():
             self.comp_adj_fr.pack()
             self.window.update()
             
-            self.adj_matrixs[protein] = pcn_final.read_adj_mat(self.adj_filespath, protein, self.min_, self.max_)
+            self.adj_matrixs[protein] = pcn_miner.read_adj_mat(self.adj_filespath, protein, self.min_, self.max_)
         
         #next scene
         self.userAnalysisChoice()
@@ -378,7 +378,7 @@ class PCNMinerGUI():
                 error_label = tk.Label(self.cm_fr, text = self.text_error_label, fg="red", bg = self.bg)
                 error_label.pack()
             self.text_error_label = ""
-            
+          
         self.analysis_fr.pack_forget()
       
         #configure the menu button
@@ -490,7 +490,7 @@ class PCNMinerGUI():
             self.mb_cd = tk.Menubutton(self.cd_fr, text="Click here and Choose at least one community detection algorithm to use: ", bg="cyan")
             self.parameters_fr = tk.Frame(self.window, bg = self.bg)
             self.ks_tk = tk.Entry(self.parameters_fr, text="Number of clusters for clustering", width=100)
-            
+           
             if self.text_error_label != "":
                 error_label = tk.Label(self.cd_fr, text = self.text_error_label, fg="red", bg = self.bg)
                 error_label.pack()
@@ -619,7 +619,7 @@ class PCNMinerGUI():
         """
         self.previous_scene = "cm"
         cm_touse = []
-
+        
         #check if a supported centrality algorithm is selected
         #checked is a list of booleans, True if the algorithm in position [i] is selected by the user.
         for i, check_button in enumerate(self.checked):
@@ -647,14 +647,14 @@ class PCNMinerGUI():
                 #for each protein and for each node centrality algorithm to use -> compute, save and plot centralities
                 for centrality_choice in cm_touse:
                     
-                    method_to_call = getattr(pcn_final, centrality_choice) 
+                    method_to_call = getattr(pcn_miner, centrality_choice) 
 
                     compute_tk = tk.Label(self.run_fr, text="Compute {} node centrality for protein {}...".format(centrality_choice, protein), bg = self.bg) 
                     compute_tk.pack()
                     self.window.update()
-                    centrality_measures = method_to_call(G, residue_names_1)#call the supported method from the pcn_final file
+                    centrality_measures = method_to_call(G, residue_names_1)#call the supported method from the pcn_miner file
                     
-                    pcn_final.save_centralities(self.output_path, centrality_measures, protein, centrality_choice) #save a txt file 
+                    pcn_miner.save_centralities(self.output_path, centrality_measures, protein, centrality_choice) #save a txt file 
 
                     plot_tk = tk.Label(self.run_fr, text="Plot {} node centrality for protein {}".format(centrality_choice, protein), bg = self.bg)
                     plot_tk.pack()
@@ -713,13 +713,13 @@ class PCNMinerGUI():
                     #for each protein, for each spectral clustering algorithm selected and for each number of clusters selected -> compute, save and plot clusters
                     for k in self.ks:
                         
-                        method_to_call = getattr(pcn_final, algorithm_choice)
+                        method_to_call = getattr(pcn_miner, algorithm_choice)
                         
                         compute_tk = tk.Label(self.run_fr, text="Compute {} spectral clustering with k = {} for protein {}...".format(algorithm_choice, k, protein), bg = self.bg) 
                         compute_tk.pack()
                         self.window.update()
                         labels = method_to_call(adj, n_clusters=k)
-                        pcn_final.save_labels(self.output_path, labels, residue_names, protein, algorithm_choice, self.d, self.beta, self.walk_len, self.num_walks)
+                        pcn_miner.save_labels(self.output_path, labels, residue_names, protein, algorithm_choice, self.d, self.beta, self.walk_len, self.num_walks)
                         
                         plot_tk = tk.Label(self.run_fr, text="Plot {} spectral clustering with k = {} for protein {}...".format(algorithm_choice, k, protein), bg = self.bg)
                         plot_tk.pack()
@@ -731,8 +731,8 @@ class PCNMinerGUI():
                         plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {} spectral clustering and k = {} for protein {}...".format(algorithm_choice, k, protein), bg = self.bg)
                         plot_p_tk.pack()
                         self.window.update()
-                        p = pcn_final.participation_coefs(G, labels, residue_names_1)
-                        pcn_final.save_part_coef(self.output_path, p, protein, algorithm_choice, k)
+                        p = pcn_miner.participation_coefs(G, labels, residue_names_1)
+                        pcn_miner.save_part_coef(self.output_path, p, protein, algorithm_choice, k)
                         output_path_p = "{}{}{}{}".format(self.output_path, self.add_slash_to_path, algorithm_choice, self.add_slash_to_path)
                         pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, k, self.run_fr, self.window)
                         filepath_p = "{}Part_coefs_Sessions{}{}_part_coefs_{}_k{}_session.pse".format(output_path_p, self.add_slash_to_path, protein, algorithm_choice, k)
@@ -786,7 +786,7 @@ class PCNMinerGUI():
                 self.run_fr.pack()
                 #for each community detection algorithm
                 for algorithm_choice in cd_touse:
-                    method_to_call = getattr(pcn_final, algorithm_choice)
+                    method_to_call = getattr(pcn_miner, algorithm_choice)
                            
                     #if the algorithm is asyn fluidic
                     if (algorithm_choice == 'asyn_fluidc'):
@@ -797,7 +797,7 @@ class PCNMinerGUI():
                             compute_tk.pack()
                             self.window.update()
                             labels = method_to_call(G, k) #call the method
-                            pcn_final.save_labels(self.output_path, labels, residue_names, protein,  method=algorithm_choice) #save the communities as txt file
+                            pcn_miner.save_labels(self.output_path, labels, residue_names, protein,  method=algorithm_choice) #save the communities as txt file
                             
                             plot_tk = tk.Label(self.run_fr, text="Plot Asyn FluidC with k = {} for protein {}...".format(k, protein), bg = self.bg)
                             plot_tk.pack()
@@ -808,8 +808,8 @@ class PCNMinerGUI():
                             plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with Asyn FluidC and k = {} for protein {}...".format(k, protein), bg = self.bg)
                             plot_p_tk.pack()
                             self.window.update()                   
-                            p = pcn_final.participation_coefs(G, labels, residue_names_1)
-                            pcn_final.save_part_coef(self.output_path, p, protein, algorithm_choice, k) #save the part coefs as txt file
+                            p = pcn_miner.participation_coefs(G, labels, residue_names_1)
+                            pcn_miner.save_part_coef(self.output_path, p, protein, algorithm_choice, k) #save the part coefs as txt file
                             output_path_p = "{}{}{}".format(self.output_path, algorithm_choice, self.add_slash_to_path)
                             pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, k, self.run_fr, self.window) #plot and save part coefs with pymol
                             filepath_p = "{}Part_coefs_Sessions{}{}_part_coefs_{}_k{}_session.pse".format(output_path_p, self.add_slash_to_path, protein, algorithm_choice, k)
@@ -822,7 +822,7 @@ class PCNMinerGUI():
                         self.window.update()
                         labels = method_to_call(G) #call the method 
                         n_coms = int( max(labels) + 1)
-                        pcn_final.save_labels(self.output_path, labels, residue_names, protein,  method=algorithm_choice) #save communities as txt 
+                        pcn_miner.save_labels(self.output_path, labels, residue_names, protein,  method=algorithm_choice) #save communities as txt 
                         
                         plot_tk = tk.Label(self.run_fr, text="Plot {} with ncoms = {} for protein {}...".format(algorithm_choice, n_coms, protein), bg = self.bg)
                         plot_tk.pack()
@@ -834,8 +834,8 @@ class PCNMinerGUI():
                         plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {} and ncoms = {} for protein {}...".format(algorithm_choice, n_coms, protein), bg = self.bg)
                         plot_p_tk.pack()
                         self.window.update()                   
-                        p = pcn_final.participation_coefs(G, labels, residue_names_1)
-                        pcn_final.save_part_coef(self.output_path, p, protein, algorithm_choice, n_coms)
+                        p = pcn_miner.participation_coefs(G, labels, residue_names_1)
+                        pcn_miner.save_part_coef(self.output_path, p, protein, algorithm_choice, n_coms)
                         output_path_p = "{}{}{}".format(self.output_path, algorithm_choice, self.add_slash_to_path)
                         pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, n_coms, self.run_fr, self.window)
                         filepath_p = "{}Part_coefs_Sessions{}{}_part_coefs_{}_k{}_session.pse".format(output_path_p, self.add_slash_to_path, protein, algorithm_choice, n_coms)
@@ -923,13 +923,13 @@ class PCNMinerGUI():
                     #for each protein, for each embedding + clustering algorithm selected and for each number of clusters k -> compute, save and plot clusters
                     for k in self.ks:
 
-                        method_to_call = getattr(pcn_final, algorithm_choice)
+                        method_to_call = getattr(pcn_miner, algorithm_choice)
                         compute_tk = tk.Label(self.run_fr, text="Compute {} embedding + clustering with k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein), bg = self.bg) 
                         compute_tk.pack()
                         self.run_fr.pack()
                         self.window.update()
                         labels = method_to_call(adj, n_clusters=k, d=self.d, beta=self.beta, walk_len=self.walk_len, num_walks=self.num_walks)
-                        pcn_final.save_labels(self.output_path, labels, residue_names, protein, algorithm_choice, self.d, self.beta, self.walk_len, self.num_walks)
+                        pcn_miner.save_labels(self.output_path, labels, residue_names, protein, algorithm_choice, self.d, self.beta, self.walk_len, self.num_walks)
                         
                         plot_tk = tk.Label(self.run_fr, text="Plot {} embedding + clustering with k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein), bg = self.bg) 
                         plot_tk.pack()
@@ -952,8 +952,8 @@ class PCNMinerGUI():
                         plot_p_tk.pack()
                         self.run_fr.pack()
                         self.window.update() 
-                        p = pcn_final.participation_coefs(G, labels, residue_names_1)
-                        pcn_final.save_part_coef(self.output_path, p, protein, algorithm_choice, k)
+                        p = pcn_miner.participation_coefs(G, labels, residue_names_1)
+                        pcn_miner.save_part_coef(self.output_path, p, protein, algorithm_choice, k)
                         output_path_p = "{}{}{}{}".format(self.output_path, self.add_slash_to_path, algorithm_choice, self.add_slash_to_path)
                         pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, k, self.run_fr, self.window)
                         filepath_p = "{}Part_coefs_Sessions{}{}_part_coefs_{}_k{}_session.pse".format(output_path_p, self.add_slash_to_path, protein, algorithm_choice, k)
@@ -985,6 +985,7 @@ class PCNMinerGUI():
         self.beta = None
         self.num_walks = None
         self.walk_len = None
+        self.adj_matrixs = dict()
         
         self.select_proteins()
         
@@ -996,6 +997,7 @@ class PCNMinerGUI():
         
         if self.previous_scene == "select_proteins":
             self.comp_adj_fr.pack_forget()
+            self.adj_matrixs = dict()
             self.analysis_fr.pack_forget()
             self.proteins_list = list()
             self.select_proteins()
