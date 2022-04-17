@@ -312,11 +312,11 @@ class PCNMinerGUI():
             
             protein_path = self.proteins_path+protein+".pdb"
             atoms = pcn_miner.readPDBFile(protein_path) 
-            residues = pcn_miner.getResidueDistance(atoms) 
-            dict_residue_names = pcn_miner.associateResidueName(residues)
+            coordinates = pcn_miner.getResidueCoordinates(atoms) 
+            dict_residue_names = pcn_miner.associateResidueName(coordinates)
             self.proteins_residue_names[protein] = np.array(list (dict_residue_names.items()))              
             
-            self.adj_matrixs[protein] = pcn_miner.adjacent_matrix(self.output_path, residues, protein, self.min_, self.max_, self.comp_adj_fr, self.window)
+            self.adj_matrixs[protein] = pcn_miner.adjacent_matrix(self.output_path, coordinates, protein, self.min_, self.max_, self.comp_adj_fr, self.window)
         
         #next scene
         self.userAnalysisChoice()
@@ -346,8 +346,8 @@ class PCNMinerGUI():
             
             protein_path = self.proteins_path+protein+".pdb"
             atoms = pcn_miner.readPDBFile(protein_path) 
-            residues = pcn_miner.getResidueDistance(atoms) 
-            dict_residue_names = pcn_miner.associateResidueName(residues)
+            coordinates = pcn_miner.getResidueCoordinates(atoms) 
+            dict_residue_names = pcn_miner.associateResidueName(coordinates)
             self.proteins_residue_names[protein] = np.array(list (dict_residue_names.items()))              
             
             reading_A_label = tk.Label(self.comp_adj_fr, text="reading adjacency matrix for protein {}... ".format(protein), bg = self.bg)
@@ -448,7 +448,7 @@ class PCNMinerGUI():
         #number of clusters parameter entry
         ks_insert_label0 = tk.Label(self.parameters_fr, text=" Spectral Clustering Window you have to choose the number of clusters and the algorithm',': ", bg = self.bg)
         ks_insert_label0.pack()
-        self.ks_tk.pack()
+        #self.ks_tk.pack()
         ks_insert_label = tk.Label(self.parameters_fr, text="Please Specify Number of Clusters: Enter an int, a list of ints splitted with ',': ", bg = self.bg)
         ks_insert_label.pack()
         self.ks_tk.pack()
@@ -471,10 +471,10 @@ class PCNMinerGUI():
         run_button.pack()
         self.back_button.pack()
         self.reset_button.pack()
-        self.tt=tk.Text(self)
-        self.tt.insert("Hello.....")
+        #self.tt=tk.Text(self)
+        #self.tt.insert("Hello.....")
         #text.insert(END, "Bye Bye.....")
-        self.text.pack()
+        #self.text.pack()
         
         
     def communityDetection(self):

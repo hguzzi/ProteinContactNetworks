@@ -17,11 +17,8 @@ from sys import platform
 from multiprocessing import Pool
 import datetime
 import itertools
-import cdlib
 import matplotlib.pyplot as plt
 import networkx as nx
-
-
 
 
 #tk GUI progress bar
@@ -41,7 +38,13 @@ from sklearn.cluster import SpectralClustering, KMeans
 from fcmeans import FCM
 
 #community detection algorithms 
-from cdlib import algorithms
+
+from cdlib.algorithms import infomap as infomap_cdlib 
+from cdlib.algorithms import spinglass as spinglass_cdlib 
+from cdlib.algorithms import leiden as leiden_cdlib 
+from cdlib.algorithms import louvain as louvain_cdlib 
+from cdlib.algorithms import walktrap as walktrap_cdlib 
+
 #from networkx.algorithms.community.centrality import girvan_newman as girvan_newman_
 from networkx.algorithms.community.asyn_fluid import asyn_fluidc as asyn_fluidc_
 from networkx.algorithms.community import greedy_modularity_communities
@@ -119,13 +122,13 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None, co
                 print(("protein {} adj matrix missing...").format(p_name))
                 protein_path = proteins_path+p_name+".pdb"
                 atoms = readPDBFile(protein_path)
-                residues = getResidueDistance(atoms)
-                dict_residue_name = associateResidueName(residues)
+                coordinates = getResidueCoordinates(atoms)
+                dict_residue_name = associateResidueName(coordinates)
                 residue_names = np.array(list (dict_residue_name.items()))
                                                 
                 print("computing adjacency matrix with thresholds: min = {} and max = {} ... (This may take time)".format(min_, max_))
                 output_path = os.path.abspath(os.path.join(adj_path, os.pardir))+add_slash_to_path
-                A = adjacent_matrix(output_path, residues, p_name, min_, max_, comp_adj_fr, window)
+                A = adjacent_matrix(output_path, coordinates, p_name, min_, max_, comp_adj_fr, window)
             
             all_adj_file_exists = True                   
     
@@ -152,15 +155,15 @@ def readPDBFile(pdbFilePath):
     print(datetime_object)
     return np.array(atoms)    
     
-def getResidueDistance(atoms):
+def getResidueCoordinates(atoms):
     """
     Compute the distances between the alpha carbons of the amino acids.
     Parameters:
         atoms: np.array, contains all the informations contained in the 'ATOM' key of the pdb files. 
     Returns:
-        residues: np.array, contains the euclidean distance between the alpha carbon of the amino acids of the proteins.  
+        coordinates: np.array, contains the euclidean distance between the alpha carbon of the amino acids of the proteins.  
     """
-    residues = []
+    coordinates = []
     residues_list = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE', 'LYS', 
                    'LEU', 'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER', 'THR', 'VAL', 
                    'TRP', 'TYR']
@@ -181,25 +184,25 @@ def getResidueDistance(atoms):
                 
                 if (atom[2].replace(" ","")=="CA"):
                     cord_C = atom[6:9] 
-                    residues.append([residue_name + str (residue_num) + " " + residue_chain, cord_C])
+                    coordinates.append([residue_name + str (residue_num) + " " + residue_chain, cord_C])
                     last_residue_num = residue_num   
 
         else:
           dropped.append(residue_name)
 
-    return np.array(residues)
+    return np.array(coordinates)
      
-def associateResidueName(residues):
+def associateResidueName(coordinates):
     """
     Associate the protein residues names to the networkx node ID.
     Parameters: 
-        residues, np.array, contains the list of residues names
+        coordinates, np.array, contains the list of residues names
     Returns:
         dict_residue_name: dictionary {residue_nxID: residue_name}
     """
     dict_residue_name = dict()
-    for i in range(residues.shape[0]):
-        dict_residue_name[str (i)] = residues[i, 0]
+    for i in range(coordinates.shape[0]):
+        dict_residue_name[str (i)] = coordinates[i, 0]
     return dict_residue_name
  
 def getResiduesSequence(pbdFilePath):
@@ -255,12 +258,12 @@ def printProgressBar (iteration, total):
     if percent == 100:
         print()
         
-def adjacent_matrix(output_path, residues, p, min_=4, max_=8, comp_adj_fr=None, window = None):
+def adjacent_matrix(output_path, coordinates, p, min_=4, max_=8, comp_adj_fr=None, window = None):
     """
     Compute the adjacency matrix.
     Parameters:
         output_path: string, is the output file path.
-        residues: np.array, contains the euclidean distance between the alpha carbon of the amino acids of the proteins.  
+        coordinates: np.array, contains the euclidean distance between the alpha carbon of the amino acids of the proteins.  
         p: string with len equals to 4, is the protein pdb code.
         min_: float, is the minimum threshold distace for extract only the non covalent interactions between amino acids.
         max_: float, is the maximum threshold distace for extract only the significat interactions between amino acids.
@@ -268,7 +271,7 @@ def adjacent_matrix(output_path, residues, p, min_=4, max_=8, comp_adj_fr=None, 
         window: tk.Tk, is the window of the GUI.
     Returns: None
     """
-    n = residues.shape[0]
+    n = coordinates.shape[0]
     adj = np.zeros((n,n))
     d = np.zeros((n,n), dtype=float)
     edge_list = []
@@ -288,8 +291,8 @@ def adjacent_matrix(output_path, residues, p, min_=4, max_=8, comp_adj_fr=None, 
     for i in range(n):
         for j in range(n):     
             if (i!=j): 
-                p1 = np.array(residues[i, 1], dtype=float) #CORD_C 
-                p2 = np.array(residues[j, 1], dtype=float) #CORD_C
+                p1 = np.array(coordinates[i, 1], dtype=float) #CORD_C 
+                p2 = np.array(coordinates[j, 1], dtype=float) #CORD_C
                 d[i][j] = euclidean(p1, p2)
                 if ((d[i][j]>min_) and (d[i][j]<max_)):
                     adj[i][j] = 1
@@ -536,8 +539,7 @@ def louvain(G):
     datetime_object = datetime.datetime.now()
     print('Start Louvain'+'\n')
     print(datetime_object)
-    louvain = algorithms.louvain(G)
-    coms = louvain.communities
+    coms = louvain_cdlib(G).communities
     num_nodes = G.number_of_nodes()
     labels = extract_labels_from_coms(num_nodes, coms, "Louvain")
     datetime_object = datetime.datetime.now()
@@ -557,8 +559,7 @@ def leiden(G):
     datetime_object = datetime.datetime.now()
     print('Start Leiden'+'\n')
     print(datetime_object)
-    leiden = algorithms.leiden(G)
-    coms = leiden.communities
+    coms = leiden_cdlib(G).communities
     num_nodes = G.number_of_nodes()
     labels = extract_labels_from_coms(num_nodes, coms, "Leiden")
     datetime_object = datetime.datetime.now()
@@ -578,8 +579,7 @@ def walktrap(G):
     datetime_object = datetime.datetime.now()
     print('Start walktrap'+'\n')
     print(datetime_object)
-    walktrap = algorithms.walktrap(G)
-    coms = walktrap.communities
+    coms = walktrap_cdlib(G).communities
     num_nodes = G.number_of_nodes()
     labels = extract_labels_from_coms(num_nodes, coms, "Walktrap")
     datetime_object = datetime.datetime.now()
@@ -614,7 +614,7 @@ def infomap(G):
     datetime_object = datetime.datetime.now()
     print('Start Infomap'+'\n')
     print(datetime_object)
-    coms = algorithms.infomap(G).communities
+    coms = infomap_cdlib(G).communities
     num_nodes = G.number_of_nodes()
     labels = extract_labels_from_coms(num_nodes, coms, "Infomap")
     datetime_object = datetime.datetime.now()
@@ -655,7 +655,7 @@ def spinglass(G):
     datetime_object = datetime.datetime.now()
     print('Start Spin Glass'+'\n')
     print(datetime_object)
-    coms = algorithms.spinglass(G).communities
+    coms = spinglass_cdlib(G).communities
     num_nodes = G.number_of_nodes()
     labels = extract_labels_from_coms(num_nodes, coms, "Spin Glass")
     datetime_object = datetime.datetime.now()
