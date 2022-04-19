@@ -1,10 +1,9 @@
 from __future__ import print_function
-import ast 
+from ast import literal_eval 
 import numpy as np
-from pymol import cmd 
-import sys 
+from pymol import cmd
+from pymol.querying import get_color_indices 
 import os 
-import pymol
 from sys import platform
 
 #tk GUI progress bar
@@ -25,7 +24,7 @@ def get_colors(selection='', quiet=1):
     
     pymol_color_list = []
     
-    for tuplepair in pymol.querying.get_color_indices(selection):
+    for tuplepair in get_color_indices(selection):
         pymol_color_list.append(tuplepair[0])
     
     #pymol_color_list.sort()
@@ -56,7 +55,7 @@ def pymol_plot(protein_path, output_path, algorithm_type, algorithm_name, k, res
     filepath = output_path+"{}{}{}{}{}_{}_{}_{}{}.txt".format(algorithm_name, add_slash_to_path, algorithm_type, add_slash_to_path, protein_name, algorithm_type, algorithm_name, ncoms_or_k, k)
     f = open(filepath, "r")
     data = f.read()
-    dict_node_comms = ast.literal_eval(data)
+    dict_node_comms = literal_eval(data)
     f.close()
 
     colors = get_colors()
@@ -122,7 +121,7 @@ def pymol_plot_embeddings(protein_path, output_path, algorithm_type, algorithm_n
     
     f = open(filepath, "r")
     data = f.read()
-    dict_node_comms = ast.literal_eval(data)
+    dict_node_comms = literal_eval(data)
     f.close()
     
     colors = get_colors()

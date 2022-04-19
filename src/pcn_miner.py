@@ -1,32 +1,24 @@
 #IMPORT LIBRARIES
-import sys
-import numpy as np
-import ast
-import networkx as nx
-import urllib
+import numpy as np 
+from networkx import from_numpy_matrix, to_numpy_matrix
+from urllib.request import urlretrieve
 from scipy.spatial.distance import euclidean
-import collections
 from operator import itemgetter
 from sklearn import metrics
-import scipy
-from scipy.linalg import eigh
-import warnings
+from scipy.linalg import eigh, eig
 import os
-import base64 
 from sys import platform
 from multiprocessing import Pool
 import datetime
 import itertools
 import matplotlib.pyplot as plt
-import networkx as nx
-
 
 #tk GUI progress bar
 import tkinter as tk
 from tkinter import ttk
 
 #centrality measures
-from networkx.algorithms.centrality import degree_centrality, eigenvector_centrality, closeness_centrality, betweenness_centrality
+from networkx.algorithms.centrality import degree_centrality, eigenvector_centrality, closeness_centrality, betweenness_centrality, betweenness_centrality_subset
 
 #embedding algorithms 
 from gem.embedding.hope     import HOPE
@@ -44,6 +36,7 @@ from cdlib.algorithms import spinglass as spinglass_cdlib
 from cdlib.algorithms import leiden as leiden_cdlib 
 from cdlib.algorithms import louvain as louvain_cdlib 
 from cdlib.algorithms import walktrap as walktrap_cdlib 
+
 
 #from networkx.algorithms.community.centrality import girvan_newman as girvan_newman_
 from networkx.algorithms.community.asyn_fluid import asyn_fluidc as asyn_fluidc_
@@ -99,7 +92,7 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None, co
                 filename_splitted = (file.split(".txt"))[0].split("_") #adj = 6vxx_adj_mat_min_max.txt      
                 p_name = filename_splitted[0]   
             print(("protein {} pdb file missing, fetching on PDB database...").format(p_name))
-            urllib.request.urlretrieve("http://files.rcsb.org/download/{}.pdb".format(p_name), "{}{}.pdb".format(proteins_path, p_name))
+            urlretrieve("http://files.rcsb.org/download/{}.pdb".format(p_name), "{}{}.pdb".format(proteins_path, p_name))
             print(("protein {} fetched successfully").format(p_name))
         all_pdb_file_exists = True
     
@@ -719,7 +712,7 @@ def computeSortEigens(mat):
         sortedEigenvalues: numpy.array, sorted eigenvalues of the matrix.
         sortedEigenvectors: numpy.array, sorted eigenvectors of the matrix.
     """
-    eigenvalues, eigenvectors = scipy.linalg.eig(mat)
+    eigenvalues, eigenvectors = eig(mat)
     
     idx = eigenvalues.argsort()
     sortedEigenvalues = eigenvalues[idx].real
@@ -812,7 +805,7 @@ def hardSpectralClustering(A, n_clusters = None, norm=False, embedding=None, d=N
     
         if (embedding in supported_embeddings):
             
-            G = nx.from_numpy_matrix(A)
+            G = from_numpy_matrix(A)
             if (embedding == "HOPE"): #embedding dimension (d) and decay factor (beta) as inputs
                 model = HOPE(d=d, beta=beta)
             elif (embedding == "LaplacianEigenmaps"):
@@ -869,7 +862,7 @@ def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  
     
         if (embedding in supported_embeddings):
              
-            G = nx.from_numpy_matrix(A)
+            G = from_numpy_matrix(A)
             if (embedding == "HOPE"): #embedding dimension (d) and decay factor (beta) as inputs
                 model = HOPE(d=d, beta=beta)
             elif (embedding == "LaplacianEigenmaps"):
@@ -1176,7 +1169,7 @@ def participation_coefs(G, labels, residue_names_1):
     Returns:
         P: dict {node: P_coef[node]}, for each node is linked its participation coefficient 
     """
-    A = nx.to_numpy_matrix(G)
+    A = to_numpy_matrix(G)
     n = A.shape[0]
     P = dict()
     k_s = np.zeros((n))
@@ -1209,7 +1202,7 @@ def z_score(G, labels, residue_names_1):
     Returns:
         z_s: dict {node: z_score[node]}, for each node is linked its z-score 
     """
-    A = nx.to_numpy_matrix(G)
+    A = to_numpy_matrix(G)
     n = A.shape[0]
     z_s = dict()
     k_s = np.zeros((n))
@@ -1279,7 +1272,7 @@ def betweenness_centrality_parallel(G, processes=None):
     node_chunks = list(chunks(G.nodes(), int(G.order() / node_divisor)))
     num_chunks = len(node_chunks)
     bt_sc = p.starmap(
-        nx.betweenness_centrality_subset,
+        betweenness_centrality_subset,
         zip(
             [G] * num_chunks,
             node_chunks,

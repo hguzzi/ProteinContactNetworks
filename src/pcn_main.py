@@ -18,8 +18,8 @@ License: CC0-1.0
 """
 
 import os
-import networkx as nx
-import pcn_final
+from networkx import from_numpy_matrix
+import pcn_miner
 import numpy as np
 from scipy.linalg import eigh
 import pcn_pymol_scripts
@@ -179,7 +179,7 @@ while (end==False): #for multiple analysis
                 if (not protein.endswith('.pdb')):
                     pdb_list[i] = protein+'.pdb'
             #check if the user given pdb codes are in the pdb file path, if they are not here the software will download them
-            pcn_final.checkIfFilesExists(pdb_list, "pdb", proteins_path) 
+            pcn_miner.checkIfFilesExists(pdb_list, "pdb", proteins_path) 
                     
     else:
          raise Exception("'{}' is not a directory.".format(proteins_path))
@@ -204,7 +204,7 @@ while (end==False): #for multiple analysis
         #if the adj file path and the protein file path exists
         if (is_dir_adj and is_dir_prot):
             adj_list = [protein.casefold()+"_adj_mat_{}_{}.txt".format(min_, max_) for protein in proteins_list]
-            pcn_final.checkIfFilesExists(adj_list, "adj", proteins_path, adj_filespath) #check if really exist the PCN for the given pdb file 
+            pcn_miner.checkIfFilesExists(adj_list, "adj", proteins_path, adj_filespath) #check if really exist the PCN for the given pdb file 
         else:
             raise Exception("'{}' is not a directory.".format(adj_filespath))
             
@@ -350,21 +350,21 @@ while (end==False): #for multiple analysis
         
         p_name = protein
         protein_path = proteins_path+p_name+".pdb"
-        atoms = pcn_final.readPDBFile(protein_path) #read 
-        residues = pcn_final.getResidueDistance(atoms) 
-        dict_residue_name = pcn_final.associateResidueName(residues)
+        atoms = pcn_miner.readPDBFile(protein_path) #read 
+        residues = pcn_miner.getResidueCoordinates(atoms) 
+        dict_residue_name = pcn_miner.associateResidueName(residues)
         residue_names = np.array(list (dict_residue_name.items()))
         
         #if the user starts with a pdb file, we have to compute the PCN 
         if(initial_choice == 'pdb'):
                      
             print("computing adjacency matrix for protein {}... (This may take time)".format(p_name))
-            A = pcn_final.adjacent_matrix(output_path, residues, p_name, min_, max_)
+            A = pcn_miner.adjacent_matrix(output_path, residues, p_name, min_, max_)
       
         #if the user starts with a precomputed PCN, read the adj file that represent the PCN
         else:     #'adj'           
             print("reading adjacency matrix for protein {}...".format(p_name))
-            A = pcn_final.read_adj_mat(adj_filespath, p_name, min_, max_)
+            A = pcn_miner.read_adj_mat(adj_filespath, p_name, min_, max_)
         
         #if the user wants to do a centrality measure 
         if (centrality_initial_choice  == 0):
@@ -372,7 +372,7 @@ while (end==False): #for multiple analysis
             print(("protein {}: CENTRALITY MEASURES COMPUTING NOW").format(p_name))
             
             #create the PCN from the adj file 
-            G = nx.from_numpy_matrix(A)  
+            G = from_numpy_matrix(A)  
             #extract the residue names: example ALA1
             residue_names_1 = np.array(residue_names[:, 1], dtype = str)        
             
@@ -382,9 +382,9 @@ while (end==False): #for multiple analysis
                 if(centrality_choice in supported_centralities_measures):
                     #compute the nodes centrality for the graph F
                     print("Computing {} centrality measure on {} PCN".format(centrality_choice, p_name))
-                    method_to_call = getattr(pcn_final, centrality_choice) 
-                    centrality_measures = method_to_call(G, residue_names_1)#call the supported method from the pcn_final file
-                    pcn_final.save_centralities(output_path, centrality_measures, p_name, centrality_choice) #save a txt file 
+                    method_to_call = getattr(pcn_miner, centrality_choice) 
+                    centrality_measures = method_to_call(G, residue_names_1)#call the supported method from the pcn_miner file
+                    pcn_miner.save_centralities(output_path, centrality_measures, p_name, centrality_choice) #save a txt file 
                     pcn_pymol_scripts.pymol_plot_centralities(output_path, centrality_measures, protein_path, centrality_choice) #plot and save centralities with pymol
                             
                 else:
@@ -394,7 +394,7 @@ while (end==False): #for multiple analysis
         if (len(algorithms_choice)>0):
             
             #compute the PCN from the Adj matrix 
-            G = nx.from_numpy_matrix(A)
+            G = from_numpy_matrix(A)
             #for each algorithm in the selected structural algorithms list
             for algorithm_choice in algorithms_choice:  
                   
@@ -423,28 +423,28 @@ while (end==False): #for multiple analysis
                     #if the user wants to use the best number of clusters for a spectral clustering, use the max eigengap method 
                     if((k_choice == 'best_k') and (type_choice == 'spectral')):
                         if('shimalik' in algorithm_choice): #if the algorithm follows the Shi Malik approach
-                            L = pcn_final.compute_laplacian_matrix(A)       #unnormalized laplacian matrix
-                            D = pcn_final.degree_matrix(A)                  #degree matrix            
+                            L = pcn_miner.compute_laplacian_matrix(A)       #unnormalized laplacian matrix
+                            D = pcn_miner.degree_matrix(A)                  #degree matrix            
                             eigenvalues = eigh(L, D, eigvals_only=True)     #Shi Malik approach: generalized eigenvalue problem
                                     
                         elif('norm' in algorithm_choice):  #if the algorithm selected follows a normalized approach 
-                            L = pcn_final.compute_normalized_laplacian(A)   #normalized laplacian matrix
+                            L = pcn_miner.compute_normalized_laplacian(A)   #normalized laplacian matrix
                             eigenvalues, eigenvectors  = np.linalg.eig(L)   #compute eigenvectors and eigenvalues of norm L
                                    
                         else: #if the algorithm selected follows an unormalized approach 
-                            L = pcn_final.compute_laplacian_matrix(A)       #unnormalized laplacian matrix
+                            L = pcn_miner.compute_laplacian_matrix(A)       #unnormalized laplacian matrix
                             eigenvalues, eigenvectors = np.linalg.eig(L)    #compute eigenvectors and eigenvalues of unnorm L
                         
                         #call max eigengap method
-                        ks = pcn_final.computeBestK(eigenvalues, n_k=n_of_best_ks) 
+                        ks = pcn_miner.computeBestK(eigenvalues, n_k=n_of_best_ks) 
                     
                     print("Selected ks: {}".format(str(ks)))
                     
                     #for each k in the list of number of clusters to try
                     for k in ks:   
                         
-                        #call the selected method, with the selected parameter, from the pcn_final file
-                        method_to_call = getattr(pcn_final, algorithm_choice)
+                        #call the selected method, with the selected parameter, from the pcn_miner file
+                        method_to_call = getattr(pcn_miner, algorithm_choice)
                         if type_choice == 'embeddings':
                             print("{} with {} with k = {}, d = {}, beta = {}, walk_len = {}, num_walks = {}".format(p_name, algorithm_choice, k, d, beta, walk_len, num_walks))
                             labels = method_to_call(A, n_clusters=k, d=d, beta=beta, walk_len=walk_len, num_walks=num_walks)
@@ -456,7 +456,7 @@ while (end==False): #for multiple analysis
                             walk_len=None
                             num_walks=None
                         #save communities/clusters as a txt file
-                        pcn_final.save_labels(output_path, labels, residue_names, p_name, algorithm_choice, d, beta, walk_len, num_walks)
+                        pcn_miner.save_labels(output_path, labels, residue_names, p_name, algorithm_choice, d, beta, walk_len, num_walks)
                        
                         #if the algorithm selected follows a Soft Spectral Clustering approach
                         if "ssc" in algorithm_choice:
@@ -473,17 +473,17 @@ while (end==False): #for multiple analysis
                         
                         #if the user want to compute the partecipation coefficients
                         if (plot_p == 0): 
-                            G = nx.from_numpy_matrix(A) #maybe delete that
+                            G = from_numpy_matrix(A) #maybe delete that
                             residue_names_1 = np.array(residue_names[:, 1], dtype = str)
-                            p = pcn_final.participation_coefs(G, labels, residue_names_1)
-                            pcn_final.save_part_coef(output_path, p, p_name, algorithm_choice, k)
+                            p = pcn_miner.participation_coefs(G, labels, residue_names_1)
+                            pcn_miner.save_part_coef(output_path, p, p_name, algorithm_choice, k)
                             output_path_p = "{}{}{}{}".format(output_path, add_slash_to_path, algorithm_choice, add_slash_to_path)
                             pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, k)
                                     
                 else:#type_choice = 'community'
                     
                     #call the method 
-                    method_to_call = getattr(pcn_final, algorithm_choice)
+                    method_to_call = getattr(pcn_miner, algorithm_choice)
                     
                     #if the algorithm is asyn fluidic
                     if (algorithm_choice == 'asyn_fluidc'):
@@ -495,28 +495,28 @@ while (end==False): #for multiple analysis
                         #for each number of communities in the list of numbers of communities to try
                         for k in ks:
                             labels = method_to_call(G, k) #call the method
-                            pcn_final.save_labels(output_path, labels, residue_names, p_name,  method=algorithm_choice) #save the communities as txt file
+                            pcn_miner.save_labels(output_path, labels, residue_names, p_name,  method=algorithm_choice) #save the communities as txt file
                             pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Communities", algorithm_choice, k) #plot and save the communities with pymol
                             
                             #if the user wants to compute the partecipation coefficients
                             if (plot_p == 0): 
                                 residue_names_1 = np.array(residue_names[:, 1], dtype = str)
-                                p = pcn_final.participation_coefs(G, labels, residue_names_1)
-                                pcn_final.save_part_coef(output_path, p, p_name, algorithm_choice, k) #save the part coefs as txt file
+                                p = pcn_miner.participation_coefs(G, labels, residue_names_1)
+                                pcn_miner.save_part_coef(output_path, p, p_name, algorithm_choice, k) #save the part coefs as txt file
                                 output_path_p = "{}{}{}{}".format(output_path, add_slash_to_path, algorithm_choice, add_slash_to_path)
                                 pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, k) #plot and save part coefs with pymol
                     
                     else:#if the community detection algorithm is not Asyn Fluidc, no need to specify the number of communities
                         labels = method_to_call(G) #call the method 
                         n_coms = int( max(labels) + 1)
-                        pcn_final.save_labels(output_path, labels, residue_names, p_name,  method=algorithm_choice) #save communities as txt 
+                        pcn_miner.save_labels(output_path, labels, residue_names, p_name,  method=algorithm_choice) #save communities as txt 
                         pcn_pymol_scripts.pymol_plot(protein_path, output_path, "Communities", algorithm_choice, n_coms) #plot and save communities with pymol
                         
                         #if the user wants to compute the partecipation coefficients
                         if (plot_p == 0): 
                             residue_names_1 = np.array(residue_names[:, 1], dtype = str)
-                            p = pcn_final.participation_coefs(G, labels, residue_names_1)
-                            pcn_final.save_part_coef(output_path, p, p_name, algorithm_choice, n_coms)
+                            p = pcn_miner.participation_coefs(G, labels, residue_names_1)
+                            pcn_miner.save_part_coef(output_path, p, p_name, algorithm_choice, n_coms)
                             output_path_p = "{}{}{}{}".format(output_path, add_slash_to_path, algorithm_choice, add_slash_to_path)
                             pcn_pymol_scripts.pymol_plot_part_coefs(p, protein_path, output_path_p, algorithm_choice, n_coms)
                         
