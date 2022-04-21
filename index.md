@@ -43,14 +43,12 @@ The easiest way to install this library is using the setup files on github:
 
 -S.O. Windows:
 
-	git clone https://github.com/hguzzi/ProteinContactNetworks.git	
-	cd src
+	git clone https://github.com/hguzzi/ProteinContactNetworks.git
 	setupWindows.bat
         
 -S.O. Linux-MACOSX:
 
 	git clone https://github.com/hguzzi/ProteinContactNetworks.git
-	cd src	
 	source setupLinux-MacOSX.sh  
 
 You can also install this library with pip:
@@ -82,14 +80,14 @@ Or with pip+git:
 How to use the command line tool version:
 
 	conda activate PCN
-	cd src
+	cd pcn
 	cd tools
 	python pcn_main.py
 
 How to use the GUI version:
         
 	conda activate PCN
-	cd src    
+	cd pcn    
 	cd tools
 	python pcn_gui_main.py
 
