@@ -5,6 +5,8 @@ call activate.bat
 call conda create -n PCN python=3.8.3
 call conda install -n PCN pip
 call pip install configparser
+cd pcn
+cd tools
 call python create_config_file.py
 
 echo "Installing libraries"

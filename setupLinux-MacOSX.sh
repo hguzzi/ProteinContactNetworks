@@ -11,6 +11,8 @@ then
 		
 	python -m ensurepip --upgrade
 	pip install configparser
+	cd pcn
+	cd tools
 	python create_config_file.py
 	
 	echo "Installing libraries"

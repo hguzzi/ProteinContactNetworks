@@ -1,10 +1,8 @@
-from codecs import open
-from os import path
 from setuptools import setup, find_packages
 
-here = path.abspath(path.dirname(__file__))
+NAME = 'PCN-Miner'
 DISTNAME = 'src'
-MAINTAINER = 'Ugo Lomoio'
+MAINTAINER = 'Ugo Lomoio <ugo.lomoio@studenti.unicz.it>, Pietro Hiram Guzzi <hguzzi@unicz.it>'
 DESCRIPTION = 'PCN-Miner: A tool for the analysis of Protein Contact Networks'
 LONG_DESCRIPTION = open('README.md').read()
 URL = 'https://github.com/hguzzi/ProteinContactNetworks'
@@ -12,13 +10,16 @@ KEYWORDS = ['Protein Contact Networks', 'Allostery', 'Proteins', 'Community Dete
 LICENSE = 'CC0 1.0 Universal (CC0 1.0) Public Domain Dedication'
 VERSION = '1.0.0'
 
-with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
-    INSTALL_REQUIRES = f.read().splitlines()
+
+INSTALL_REQUIRES = ['numpy','future','matplotlib','scikit-learn','tqdm','networkx>=2.4','demon','python-louvain>=0.16','nf1','scipy','pulp','seaborn','pandas',
+                    'eva_lcd','bimlpa','markov_clustering','chinese_whispers','python-igraph','angel-cd','pooch','dynetx','thresholdclustering','pyclustering',
+                    'cython','python-Levenshtein','regex','fuzzy-c-means','cdlib','pytz','python-dateutil','node2vec',
+                    'GEM @ git+https://github.com/palash1992/GEM.git']
 
 def setup_package():
     
     setup(
-        name=DISTNAME,
+        name=NAME,
         version=VERSION,
         author=MAINTAINER,
         description=DESCRIPTION,
@@ -26,16 +27,18 @@ def setup_package():
         keywords=KEYWORDS,
         install_requires=INSTALL_REQUIRES,
         packages=find_packages(),
-        package_dir={DISTNAME: 'pcn_miner'},
+        package_dir={DISTNAME: 'src'},
         license=LICENSE,
         long_description=LONG_DESCRIPTION,
         classifiers=['Intended Audience :: Science/Research',
                      'Intended Audience :: Developers',
                      'Development Status :: 4 - Beta',
                      'Operating System :: OS Independent',
-                     'CC0 1.0 Universal (CC0 1.0) Public Domain Dedication',
+                     'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication',
                      'Programming Language :: Python :: 3',
                      ],
+        package_data={'': ['src\tools\gui_images']},
+        include_package_data=True,
         )
 
 if __name__ == "__main__":
