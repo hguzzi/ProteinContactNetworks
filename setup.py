@@ -1,11 +1,8 @@
 from setuptools import setup, find_packages
 
 NAME = 'PCN-Miner'
-<<<<<<< HEAD
-DISTNAME = 'src'
-=======
+
 DISTNAME = 'pcn'
->>>>>>> d003e9064db5274aabaeeea796ddbf56ce5d6caf
 MAINTAINER = 'Ugo Lomoio <ugo.lomoio@studenti.unicz.it>, Pietro Hiram Guzzi <hguzzi@unicz.it>'
 DESCRIPTION = 'PCN-Miner: A tool for the analysis of Protein Contact Networks'
 LONG_DESCRIPTION = open('README.md').read()
@@ -31,11 +28,7 @@ def setup_package():
         keywords=KEYWORDS,
         install_requires=INSTALL_REQUIRES,
         packages=find_packages(),
-<<<<<<< HEAD
-        package_dir={DISTNAME: 'src'},
-=======
         package_dir={DISTNAME: 'pcn'},
->>>>>>> d003e9064db5274aabaeeea796ddbf56ce5d6caf
         license=LICENSE,
         long_description=LONG_DESCRIPTION,
         classifiers=['Intended Audience :: Science/Research',
@@ -45,11 +38,7 @@ def setup_package():
                      'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication',
                      'Programming Language :: Python :: 3',
                      ],
-<<<<<<< HEAD
-        package_data={'': ['src\tools\gui_images']},
-=======
         package_data={'': ['pcn\tools\gui_images']},
->>>>>>> d003e9064db5274aabaeeea796ddbf56ce5d6caf
         include_package_data=True,
         )
 

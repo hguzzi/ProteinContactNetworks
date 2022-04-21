@@ -5,3 +5,5 @@
 
 #ignore config file
 config.ini
+pyproject.toml
+setup.cfg
