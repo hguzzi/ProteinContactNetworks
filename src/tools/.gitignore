@@ -1,5 +1,0 @@
-#ignore pycache directory
-__pycache__/
-
-#ignore config file
-.ini

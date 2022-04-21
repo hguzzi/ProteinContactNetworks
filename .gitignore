@@ -1,2 +1,7 @@
+#ignore directories
+/build
+/dist
+/PCN_Miner.egg-info
+
 #ignore config file
 config.ini
