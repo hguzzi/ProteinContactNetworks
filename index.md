@@ -3,8 +3,8 @@
 Protein Contact Networks Miner is a command line tool (and now a Graphic User Interface) designed for annotate allosteric domains of a protein based of his rappresentation trough an unweighted graph, this graph is also called Protein Contact Network.
 
 A Protein Contact Network is an unweighted graph where: nodes are the amino acids of the protein and exists an edge that connect two nodes i and j only if the euclidean distance between them is between 4 Angstrom (threshold for only non covalent interactions) and 8 Angstrom (threshold for only significant interactions). The distance between two aminoacids i and j is approssimated by the distance between the Alpha Carbon of the amino acids. The user can modify the only covalent (min) and the only significant (max) threshold distance for PCN construction. 
-	 		
-![image](https://user-images.githubusercontent.com/87126937/164235422-d7eaf3c7-5a08-402e-8bc0-10153026c082.png)
+	 			
+![image](https://user-images.githubusercontent.com/87126937/164426523-cf5fdae6-0c24-4817-bab3-cf27cdc472a5.png)
 
 PCN global descriptors (like graph diameter) or local descriptors (like node centrality measures) are useful to model and analyse protein functions. PCN Miner allow the user to identify modules (also called communities or clusters) in protein molecules using three different approaches: 
   1. spectral clustering: extract clusters from a graph with a clustering approach based on the Laplacian matrix eigenvectors following the guidelines given    in the paper: A tutorial on spectral clustering [1];
@@ -76,9 +76,6 @@ Or with pip+git:
 	conda install -c schrodinger pymol-bundle
 	pip install git+https://github.com/hguzzi/ProteinContactNetworks.git
 
-Or using conda:
-
-	#TODO conda install
 
 # Usage:
 
@@ -86,12 +83,14 @@ How to use the command line tool version:
 
 	conda activate PCN
 	cd src
+	cd tools
 	python pcn_main.py
 
 How to use the GUI version:
         
 	conda activate PCN
-	cd src       
+	cd src    
+	cd tools
 	python pcn_gui_main.py
 
 # Examples:
