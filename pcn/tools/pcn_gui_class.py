@@ -1,6 +1,6 @@
 import os
 import networkx as nx
-from pcn_miner import pcn_miner, pcn_pymol_scripts
+from pcn.pcn_miner import pcn_miner, pcn_pymol_scripts
 import numpy as np
 from scipy.linalg import eigh
 from sys import platform

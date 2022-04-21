@@ -27,8 +27,8 @@ def setup_package():
         url=URL,
         keywords=KEYWORDS,
         install_requires=INSTALL_REQUIRES,
-        packages=find_packages(),
-        package_dir={DISTNAME: 'pcn'},
+        packages=find_packages(where=DISTNAME, exclude = 'gui'),
+        package_dir = {'':'pcn'},
         license=LICENSE,
         long_description=LONG_DESCRIPTION,
         classifiers=['Intended Audience :: Science/Research',
@@ -38,8 +38,6 @@ def setup_package():
                      'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication',
                      'Programming Language :: Python :: 3',
                      ],
-        package_data={'': ['pcn\tools\gui_images']},
-        include_package_data=True,
         )
 
 if __name__ == "__main__":

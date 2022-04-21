@@ -19,7 +19,7 @@ License: CC0-1.0
 
 import os
 from networkx import from_numpy_matrix
-from pcn_miner import pcn_miner, pcn_pymol_scripts
+from pcn.pcn_miner import pcn_miner, pcn_pymol_scripts
 import numpy as np
 from scipy.linalg import eigh
 from sys import platform

@@ -1,5 +1,5 @@
 import tkinter as tk
-from pcn_gui_class import PCNMinerGUI
+from pcn.tools.pcn_gui_class import PCNMinerGUI
 
 def main():
     

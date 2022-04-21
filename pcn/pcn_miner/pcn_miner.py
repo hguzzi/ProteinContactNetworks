@@ -37,7 +37,6 @@ from cdlib.algorithms import leiden as leiden_cdlib
 from cdlib.algorithms import louvain as louvain_cdlib 
 from cdlib.algorithms import walktrap as walktrap_cdlib 
 
-
 #from networkx.algorithms.community.centrality import girvan_newman as girvan_newman_
 from networkx.algorithms.community.asyn_fluid import asyn_fluidc as asyn_fluidc_
 from networkx.algorithms.community import greedy_modularity_communities
