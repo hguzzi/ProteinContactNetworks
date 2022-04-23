@@ -1,6 +1,18 @@
 import os
 import networkx as nx
-from pcn.pcn_miner import pcn_miner, pcn_pymol_scripts
+
+try:
+    from pcn.pcn_miner import pcn_miner, pcn_pymol_scripts #installed with pip
+except:
+    try: 
+        import sys                #git cloned
+        cwd = os.getcwd()
+        pcn_d = os.path.abspath(os.path.join(cwd, os.pardir))
+        sys.path.append(pcn_d)
+        from pcn_miner import pcn_miner, pcn_pymol_scripts 
+    except:
+        raise ImportError("PCN-Miner is not correctly installed.")
+
 import numpy as np
 from scipy.linalg import eigh
 from sys import platform

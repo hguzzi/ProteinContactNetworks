@@ -17,9 +17,22 @@ Authors: Lomoio Ugo
 License: CC0-1.0
 """
 
+from sys import platform    
 import os
 from networkx import from_numpy_matrix
-from pcn.pcn_miner import pcn_miner, pcn_pymol_scripts
+
+try:
+    from pcn.pcn_miner import pcn_miner, pcn_pymol_scripts #installed with pip
+except:
+    try: 
+        import sys                #git cloned
+        cwd = os.getcwd()
+        pcn_d = os.path.abspath(os.path.join(cwd, os.pardir))
+        sys.path.append(pcn_d)
+        from pcn_miner import pcn_miner, pcn_pymol_scripts 
+    except:
+        raise ImportError("PCN-Miner is not correctly installed.")
+        
 import numpy as np
 from scipy.linalg import eigh
 from sys import platform
@@ -37,16 +50,6 @@ print(" ")
 
 input('Press Enter to Continue')
 
-#supported algorithms here 
-supported_algorithms_clustering = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik", "skl_spectral_clustering"]
-supported_algorithms_embeddings = [
-                                   "fuzzycmeans_hope", "kmeans_hope", "fuzzycmeans_laplacianeigenmaps", "kmeans_laplacianeigenmaps" ,
-                                   "fuzzycmeans_node2vec", "kmeans_node2vec"
-                                  ]
-supported_algorithms_communities = ["louvain", "leiden", "walktrap", "asyn_fluidc", "greedy_modularity", "infomap", "spinglass"]
-
-supported_centralities_measures = ["closeness", "eigenvector_c", "betweenness", "degree_c"]
-
 #handle differents slash path separator: example "\" for windows and "/" for Linux and Mac.
 #need this for dynamic Output path creation 
 if platform == "linux" or platform == "linux2":
@@ -59,7 +62,19 @@ elif platform == "darwin":
     os.system('clear')
 elif platform == "win32":
     # Windows...
-    add_slash_to_path = '\\'
+    add_slash_to_path = '\\'   
+    
+#supported algorithms here 
+supported_algorithms_clustering = ["unnorm_ssc", "norm_ssc", "unnorm_hsc", "norm_hsc", "hsc_shimalik", "ssc_shimalik", "skl_spectral_clustering"]
+supported_algorithms_embeddings = [
+                                   "fuzzycmeans_hope", "kmeans_hope", "fuzzycmeans_laplacianeigenmaps", "kmeans_laplacianeigenmaps" ,
+                                   "fuzzycmeans_node2vec", "kmeans_node2vec"
+                                  ]
+supported_algorithms_communities = ["louvain", "leiden", "walktrap", "asyn_fluidc", "greedy_modularity", "infomap", "spinglass"]
+
+supported_centralities_measures = ["closeness", "eigenvector_c", "betweenness", "degree_c"]
+
+if platform == "win32":
     print("Infomap algorithm not supported on Windows")
     supported_algorithms_communities.remove("infomap")
 
