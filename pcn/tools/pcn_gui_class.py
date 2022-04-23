@@ -913,7 +913,7 @@ class PCNMinerGUI():
                 elif num_walks_choice.isnumeric(): 
                     self.num_walks = int(num_walks_choice)
                 
-                walk_len_choice = (self.walk_len__tk.get()).strip()
+                walk_len_choice = (self.walk_len_tk.get()).strip()
                 if walk_len_choice == "":
                     if "Please insert a valid value for walk_len." not in self.text_error_label: 
                         self.text_error_label += "Please insert a valid value for walk_len. \n  "
