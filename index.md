@@ -62,16 +62,12 @@ Open the anaconda prompt and type the following command:
 	conda activate PCN 
 	conda install -c schrodinger pymol-bundle
 
-Then we can install GEM library using pip+git and this library using TESTPYPI:
-	
-	pip install git+https://github.com/palash1992/GEM.git
+Finally we can install this library using TESTPYPI:
+
 	pip install --extra-index-url https://pypi.org/simple -i https://test.pypi.org/simple/ PCN-Miner
 
 Or with pip+git:
-		
-	conda create -n PCN python=3.8.3
-	conda activate PCN 
-	conda install -c schrodinger pymol-bundle
+
 	pip install git+https://github.com/hguzzi/ProteinContactNetworks.git
 
 
