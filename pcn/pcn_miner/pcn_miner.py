@@ -1020,7 +1020,7 @@ def kmeans_node2vec(A, n_clusters = None, norm=False, embedding="Node2Vec", d=2,
     Parameters: see hardSpectralClustering
     Returns: see hardSpectralClustering
     """
-    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks, walk_len, num_walks)
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
 
@@ -1030,7 +1030,7 @@ def fuzzycmeans_node2vec(A, n_clusters = None, norm=False, embedding="Node2Vec",
     Parameters: see softSpectralClustering
     Returns: see softSpectralClustering
     """
-    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks, walk_len, num_walks)
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
 
