@@ -1,11 +1,10 @@
 Metadata-Version: 2.1
-Name: PCN-Miner
+Name: pcn
 Version: 1.0.0
 Summary: PCN-Miner: A tool for the analysis of Protein Contact Networks
 Home-page: https://github.com/hguzzi/ProteinContactNetworks
 Author: Ugo Lomoio <ugo.lomoio@studenti.unicz.it>, Pietro Hiram Guzzi <hguzzi@unicz.it>
 License: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication
-Project-URL: Bug Tracker, https://github.com/hguzzi/ProteinContactNetworks/issues
 Keywords: Protein Contact Networks,Allostery,Proteins,Community Detection,Graph Embedding,Clustering,Spectral Clustering,Graphs
 Platform: UNKNOWN
 Classifier: Intended Audience :: Science/Research
@@ -14,8 +13,6 @@ Classifier: Development Status :: 4 - Beta
 Classifier: Operating System :: OS Independent
 Classifier: License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication
 Classifier: Programming Language :: Python :: 3
-Requires-Python: >=3.8
-Description-Content-Type: text/markdown
 License-File: LICENSE
 
 Third part softwares needed:
@@ -78,16 +75,16 @@ Open the anaconda prompt and type the following command:
 	conda activate PCN 
 	conda install -c schrodinger pymol-bundle
 
-Then we can install GEM library using pip+git and this library using TESTPYPI:
+Then we can install GEM library using pip+git:
 	
 	pip install git+https://github.com/palash1992/GEM.git
+
+Finally we can install this library using TESTPYPI:
+
 	pip install --extra-index-url https://pypi.org/simple -i https://test.pypi.org/simple/ PCN-Miner
 
 Or with pip+git:
 		
-	conda create -n PCN python=3.8.3
-	conda activate PCN 
-	conda install -c schrodinger pymol-bundle
 	pip install git+https://github.com/hguzzi/ProteinContactNetworks.git
 
 How to use the command line tool version:

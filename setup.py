@@ -1,8 +1,6 @@
 from setuptools import setup, find_packages
 
-NAME = 'PCN-Miner'
-
-DISTNAME = 'pcn'
+NAME = 'pcn'
 MAINTAINER = 'Ugo Lomoio <ugo.lomoio@studenti.unicz.it>, Pietro Hiram Guzzi <hguzzi@unicz.it>'
 DESCRIPTION = 'PCN-Miner: A tool for the analysis of Protein Contact Networks'
 LONG_DESCRIPTION = open('README.md').read()
@@ -18,7 +16,8 @@ INSTALL_REQUIRES = ['numpy','future','matplotlib','scikit-learn','tqdm','network
                     'GEM @ git+https://github.com/palash1992/GEM.git']
 
 def setup_package():
-    
+
+
     setup(
         name=NAME,
         version=VERSION,
@@ -27,8 +26,7 @@ def setup_package():
         url=URL,
         keywords=KEYWORDS,
         install_requires=INSTALL_REQUIRES,
-        packages=find_packages(where=DISTNAME, exclude = 'gui'),
-        package_dir = {'':'pcn'},
+        packages=find_packages(),
         license=LICENSE,
         long_description=LONG_DESCRIPTION,
         classifiers=['Intended Audience :: Science/Research',
