@@ -68,7 +68,7 @@ Finally we can install this library using TESTPYPI:
 
 Or with pip+git:
 		
-	pip install git+https://github.com/hguzzi/ProteinContactNetworks.git
+	pip install git+https://github.com/hguzzi/ProteinContactNetworks.git#egg=pcn
 
 How to use the command line tool version:
 
