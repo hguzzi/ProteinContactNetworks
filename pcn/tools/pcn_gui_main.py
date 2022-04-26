@@ -1,7 +1,7 @@
 import tkinter as tk
 
 try:
-    from pcn.pcn_gui_class import PCNMinerGUI #installed with pip
+    from pcn.tools.pcn_gui_class import PCNMinerGUI #installed with pip
 except:
     try: 
         from pcn_gui_class import PCNMinerGUI #git cloned

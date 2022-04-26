@@ -5,7 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e8e3adc8-1a50-4d82-b685-2cbf94578b94" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pcn/tools/pcn_gui_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/pcn/tools/pcn_gui_class.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pcn/tools/pcn_gui_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/pcn/tools/pcn_gui_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,6 +30,8 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -66,7 +73,8 @@
       <updated>1650886568234</updated>
       <workItem from="1650886570443" duration="37000" />
       <workItem from="1650886614026" duration="137000" />
-      <workItem from="1650965667048" duration="613000" />
+      <workItem from="1650965667048" duration="1884000" />
+      <workItem from="1650970984207" duration="8363000" />
     </task>
     <servers />
   </component>

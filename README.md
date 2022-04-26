@@ -88,12 +88,22 @@ If the software is installed with setup files on git:
 	cd tools
 	python pcn_main.py
 
-# How to use the GUI version (not available on pip):
-        
+# How to use the GUI version:
+
+If the software is installed with pip:
+
+	conda activate PCN
+	python
+	from pcn.tools import pcn_gui_main
+	pcn_gui_main.main()
+
+If the software is installed with setup files on git:
+
 	conda activate PCN
 	cd pcn       
 	cd tools
 	python pcn_gui_main.py
+	
 
 # Example:
   

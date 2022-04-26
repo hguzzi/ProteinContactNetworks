@@ -3,6 +3,7 @@ import networkx as nx
 
 try:
     from pcn.pcn_miner import pcn_miner, pcn_pymol_scripts #installed with pip
+    is_pip = True
 except:
     try: 
         import sys                #git cloned
@@ -10,6 +11,7 @@ except:
         pcn_d = os.path.abspath(os.path.join(cwd, os.pardir))
         sys.path.append(pcn_d)
         from pcn_miner import pcn_miner, pcn_pymol_scripts 
+        is_pip = False
     except:
         raise ImportError("PCN-Miner is not correctly installed.")
 
@@ -58,8 +60,12 @@ class PCNMinerGUI():
         self.output_path = ""
         self.proteins_path = ""
         self.adj_filespath = ""
-        
-        self.gui_images_path = os.getcwd()+self.add_slash_to_path+"gui_images"+self.add_slash_to_path
+
+        if is_pip:
+            import pcn
+            self.gui_images_path = pcn.__path__[0] + self.add_slash_to_path + "tools" + self.add_slash_to_path + "gui_images" + self.add_slash_to_path
+        else:
+            self.gui_images_path = os.getcwd()+self.add_slash_to_path+"gui_images"+self.add_slash_to_path
         
         #initialize proteins
         self.proteins_list = []

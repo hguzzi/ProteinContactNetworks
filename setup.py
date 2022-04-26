@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+from glob import glob
 
 NAME = 'pcn'
 MAINTAINER = 'Ugo Lomoio <ugo.lomoio@studenti.unicz.it>, Pietro Hiram Guzzi <hguzzi@unicz.it>'
@@ -9,7 +10,6 @@ KEYWORDS = ['Protein Contact Networks', 'Allostery', 'Proteins', 'Community Dete
 LICENSE = 'CC0 1.0 Universal (CC0 1.0) Public Domain Dedication'
 VERSION = '1.0.0'
 
-
 INSTALL_REQUIRES = [
                     'numpy','future','matplotlib','scikit-learn','tqdm','networkx>=2.4','demon','python-louvain>=0.16','nf1','scipy','pulp','seaborn','pandas',
                     'eva_lcd','bimlpa','markov_clustering','chinese_whispers','python-igraph','angel-cd','pooch','dynetx','thresholdclustering','pyclustering',
@@ -17,7 +17,6 @@ INSTALL_REQUIRES = [
                    ]
 
 def setup_package():
-
 
     setup(
         name=NAME,
@@ -28,6 +27,9 @@ def setup_package():
         keywords=KEYWORDS,
         install_requires=INSTALL_REQUIRES,
         packages=find_packages(),
+        package_dir={'pcn': 'pcn'},
+        package_data = {'pcn.tools.gui_images': ['*.png']}, #only windows
+        include_package_data=True,
         license=LICENSE,
         long_description=LONG_DESCRIPTION,
         long_description_content_type='text/markdown',
