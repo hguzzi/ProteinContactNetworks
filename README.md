@@ -35,6 +35,8 @@ PCN-Miner Supported Algorithms:
 
 Outputs (node centrality, clusters or communities) of the supported algorithms are then plotted on the 3D structure of the protein using PyMol scripts.
 
+# How to install:
+
 The easiest way to install this library is using the setup files on github:
 
 -S.O. Windows:
@@ -49,7 +51,7 @@ The easiest way to install this library is using the setup files on github:
 
 You can also install this library with pip:
 
-IMPORTANT: This project depends on PyMOL and GraphEmbeddingMethods, two libraries not available on PyPI. 
+## IMPORTANT: This project depends on PyMOL and GraphEmbeddingMethods, two libraries not available on PyPI. 
 One easy way to install pymol is using anaconda.
 
 Open the anaconda prompt and type the following command:
@@ -68,23 +70,32 @@ Finally we can install this library using TESTPYPI:
 
 Or with pip+git:
 		
-	pip install git+https://github.com/hguzzi/ProteinContactNetworks.git
+	pip install git+https://github.com/hguzzi/ProteinContactNetworks.git#egg=pcn
 
-How to use the command line tool version:
+# How to use the command line tool version:
+	
+If the software is installed with pip:
+
+	conda activate PCN
+	python
+	from pcn.tools import pcn_main
+	pcn_main.main()
+
+If the software is installed with setup files on git:
 
 	conda activate PCN
 	cd pcn
 	cd tools
 	python pcn_main.py
 
-How to use the GUI version:
+# How to use the GUI version (not available on pip):
         
 	conda activate PCN
 	cd pcn       
 	cd tools
 	python pcn_gui_main.py
 
-Example:
+# Example:
   
 Entry PDB code: 6VXX
 
@@ -105,7 +116,7 @@ Algorithm: Eigenvector Centrality
 ![image](https://user-images.githubusercontent.com/87126937/162151265-a64b2af6-bb15-41eb-883f-a4cc1779439d.png)
 
 
-References:
+# References:
   
   [1] von Luxburg, U. A tutorial on spectral clustering. Stat Comput 17, 395–416 (2007). https://doi.org/10.1007/s11222-007-9033-z;
   
