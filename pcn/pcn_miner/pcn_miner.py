@@ -105,7 +105,7 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None, co
                 all_adj_files_exists = False
                 not_existing_adj_files.append(file)
            
-        if(not all_adj_files_exists):
+        if (not all_adj_files_exists):
             for filename in not_existing_adj_files:
                 filename_splitted = (filename.split(".txt"))[0].split("_") #adj = 6vxx_adj_mat_min_max.txt
                 p_name = filename_splitted[0]   
