@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-from glob import glob
 
 NAME = 'pcn'
 MAINTAINER = 'Ugo Lomoio <ugo.lomoio@studenti.unicz.it>, Pietro Hiram Guzzi <hguzzi@unicz.it>'
@@ -8,12 +7,12 @@ LONG_DESCRIPTION = open('README.md').read()
 URL = 'https://github.com/hguzzi/ProteinContactNetworks'
 KEYWORDS = ['Protein Contact Networks', 'Allostery', 'Proteins', 'Community Detection', 'Graph Embedding', 'Clustering', 'Spectral Clustering', 'Graphs']
 LICENSE = 'CC0 1.0 Universal (CC0 1.0) Public Domain Dedication'
-VERSION = '1.0.0'
+VERSION = '1.0'
 
 INSTALL_REQUIRES = [
                     'numpy','future','matplotlib','scikit-learn','tqdm','networkx>=2.4','demon','python-louvain>=0.16','nf1','scipy','pulp','seaborn','pandas',
                     'eva_lcd','bimlpa','markov_clustering','chinese_whispers','python-igraph','angel-cd','pooch','dynetx','thresholdclustering','pyclustering',
-                    'cython','python-Levenshtein','regex','fuzzy-c-means','cdlib','pytz','python-dateutil','node2vec',
+                    'cython','python-Levenshtein','regex','fuzzy-c-means','cdlib','pytz','python-dateutil','node2vec==0.4.4'
                    ]
 
 def setup_package():
@@ -28,7 +27,7 @@ def setup_package():
         install_requires=INSTALL_REQUIRES,
         packages=find_packages(),
         package_dir={'pcn': 'pcn'},
-        package_data = {'pcn.tools.gui_images': ['*.png']}, #only windows
+        package_data = {'pcn.tools.gui_images': ['*.png']},
         include_package_data=True,
         license=LICENSE,
         long_description=LONG_DESCRIPTION,
@@ -39,6 +38,7 @@ def setup_package():
                      'Operating System :: OS Independent',
                      'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication',
                      'Programming Language :: Python :: 3',
+                     'Programming Language :: Python :: 3.8'
                      ],
         )
 

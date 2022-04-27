@@ -12,8 +12,7 @@ The outputs (node centralities/communities/clusters) will be plotted on the prot
 
 Authors: Lomoio Ugo
          Pietro Hiram Guzzi
-         Ferrarelli Giuseppe
-         
+
 License: CC0-1.0
 """
 
@@ -39,6 +38,7 @@ from sys import platform
 import configparser
 
 def main():
+
     print("Protein Contact Network Miner")
 
     print("Software Available under CC-BY Licence ")
