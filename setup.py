@@ -28,7 +28,6 @@ def setup_package():
         packages=find_packages(),
         package_dir={'pcn': 'pcn'},
         package_data = {'pcn.tools.gui_images': ['*.png']},
-        include_package_data=True,
         license=LICENSE,
         long_description=LONG_DESCRIPTION,
         long_description_content_type='text/markdown',
