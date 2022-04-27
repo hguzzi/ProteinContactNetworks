@@ -1,6 +1,20 @@
 import os
 import networkx as nx
-from pcn_miner import pcn_miner, pcn_pymol_scripts
+
+try:
+    from pcn.pcn_miner import pcn_miner, pcn_pymol_scripts #installed with pip
+    is_pip = True
+except:
+    try: 
+        import sys                #git cloned
+        cwd = os.getcwd()
+        pcn_d = os.path.abspath(os.path.join(cwd, os.pardir))
+        sys.path.append(pcn_d)
+        from pcn_miner import pcn_miner, pcn_pymol_scripts 
+        is_pip = False
+    except:
+        raise ImportError("PCN-Miner is not correctly installed.")
+
 import numpy as np
 from scipy.linalg import eigh
 from sys import platform
@@ -46,8 +60,12 @@ class PCNMinerGUI():
         self.output_path = ""
         self.proteins_path = ""
         self.adj_filespath = ""
-        
-        self.gui_images_path = os.getcwd()+self.add_slash_to_path+"gui_images"+self.add_slash_to_path
+
+        if is_pip:
+            import pcn
+            self.gui_images_path = pcn.__path__[0] + self.add_slash_to_path + "tools" + self.add_slash_to_path + "gui_images" + self.add_slash_to_path
+        else:
+            self.gui_images_path = os.getcwd()+self.add_slash_to_path+"gui_images"+self.add_slash_to_path
         
         #initialize proteins
         self.proteins_list = []
@@ -111,6 +129,7 @@ class PCNMinerGUI():
         self.parameters_fr = tk.Frame(self.window, bg = self.bg)     #frame for entry parameters
         self.run_fr = tk.Frame(self.window, bg = self.bg)            #frame for run analysis on the PCN
         self.results_fr = tk.Frame(self.window, bg = self.bg)        #for display results
+
         #initialize entries
         
         #paths user entry, to use when no config file exist
@@ -445,15 +464,14 @@ class PCNMinerGUI():
         self.mb_sc.pack()
             
         #number of clusters parameter entry
-        ks_insert_label0 = tk.Label(self.parameters_fr, text=" Spectral Clustering Window you have to choose the number of clusters and the algorithm',': ", bg = self.bg)
+        ks_insert_label0 = tk.Label(self.parameters_fr, text=" Spectral Clustering Window you have to choose the number of clusters and the algorithm: ", bg = self.bg)
         ks_insert_label0.pack()
         #self.ks_tk.pack()
         ks_insert_label = tk.Label(self.parameters_fr, text="Please Specify Number of Clusters: Enter an int, a list of ints splitted with ',': ", bg = self.bg)
         ks_insert_label.pack()
         self.ks_tk.pack()
         self.parameters_fr.pack()
-        
-        
+
         #run, back and reset buttons
         photo_run = (tk.PhotoImage(file = r"{}button_run.png".format(self.gui_images_path))).subsample(2,2)
         photo_back = (tk.PhotoImage(file = r"{}button_back.png".format(self.gui_images_path))).subsample(2,2)
@@ -470,12 +488,7 @@ class PCNMinerGUI():
         run_button.pack()
         self.back_button.pack()
         self.reset_button.pack()
-        #self.tt=tk.Text(self)
-        #self.tt.insert("Hello.....")
-        #text.insert(END, "Bye Bye.....")
-        #self.text.pack()
-        
-        
+
     def communityDetection(self):
         """
         Select the community detection algorithms and, in case of "Asyn FluidC" algorithm select the number of communities to use.
@@ -901,7 +914,7 @@ class PCNMinerGUI():
                 elif num_walks_choice.isnumeric(): 
                     self.num_walks = int(num_walks_choice)
                 
-                walk_len_choice = (self.walk_len__tk.get()).strip()
+                walk_len_choice = (self.walk_len_tk.get()).strip()
                 if walk_len_choice == "":
                     if "Please insert a valid value for walk_len." not in self.text_error_label: 
                         self.text_error_label += "Please insert a valid value for walk_len. \n  "
@@ -930,32 +943,49 @@ class PCNMinerGUI():
                     #for each protein, for each embedding + clustering algorithm selected and for each number of clusters k -> compute, save and plot clusters
                     for k in self.ks:
 
-                        method_to_call = getattr(pcn_miner, algorithm_choice)
-                        compute_tk = tk.Label(self.run_fr, text="Compute {} embedding + clustering with k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein), bg = self.bg) 
+                        if "node2vec" in algorithm_choice:
+                            compute_tk = tk.Label(self.run_fr, text="Compute {} embedding + clustering with k = {}, d = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.num_walks, self.walk_len, protein), bg=self.bg)
+                        elif "hope" in algorithm_choice:
+                            compute_tk = tk.Label(self.run_fr, text="Compute {} embedding + clustering with k = {}, d = {}, beta = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, protein), bg=self.bg)
+                        else: #laplacian_eigenmaps
+                            compute_tk = tk.Label(self.run_fr, text="Compute {} embedding + clustering with k = {} and d = {} for protein {}...".format(algorithm_choice, k, self.d, protein), bg=self.bg)
+
                         compute_tk.pack()
                         self.run_fr.pack()
                         self.window.update()
+
+                        method_to_call = getattr(pcn_miner, algorithm_choice)
                         labels = method_to_call(adj, n_clusters=k, d=self.d, beta=self.beta, walk_len=self.walk_len, num_walks=self.num_walks)
-                        pcn_miner.save_labels(self.output_path, labels, residue_names, protein, algorithm_choice, self.d, self.beta, self.walk_len, self.num_walks)
-                        
-                        plot_tk = tk.Label(self.run_fr, text="Plot {} embedding + clustering with k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein), bg = self.bg) 
+
+                        if "node2vec" in algorithm_choice:
+                            pcn_miner.save_labels(self.output_path, labels, residue_names, protein, algorithm_choice, self.d, None, self.walk_len, self.num_walks) #beta is None
+                            plot_tk = tk.Label(self.run_fr, text="Plot {} embedding + clustering with k = {}, d = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.num_walks, self.walk_len, protein), bg=self.bg)
+                        elif "hope" in algorithm_choice:
+                            pcn_miner.save_labels(self.output_path, labels, residue_names, protein, algorithm_choice, self.d, self.beta, None, None)  # walk_len and num_walks are None
+                            plot_tk = tk.Label(self.run_fr, text="Plot {} embedding + clustering with k = {}, d = {} and beta = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, protein), bg=self.bg)
+                        else: #laplacian_eigenmaps
+                            pcn_miner.save_labels(self.output_path, labels, residue_names, protein, algorithm_choice, self.d, None, None, None)  # beta, walk_len and num_walks are None
+                            plot_tk = tk.Label(self.run_fr, text="Plot {} embedding + clustering with k = {} and d = {} for protein {}...".format(algorithm_choice, k, self.d, protein), bg=self.bg)
+
                         plot_tk.pack()
                         self.run_fr.pack()
                         self.window.update()
-                        pcn_pymol_scripts.pymol_plot_embeddings(protein_path, self.output_path, "ClustersEmbeddings", algorithm_choice, k, self.d, self.beta, self.walk_len, self.num_walks, self.run_fr, self.window)
-                                        
-                        if "hope" in algorithm_choice:
-                            filepath = "{}{}{}Sessions{}{}_{}_d{}_beta{}_k{}_session.pse".format(self.output_path, algorithm_choice, self.add_slash_to_path, self.add_slash_to_path, protein, algorithm_choice, self.d, self.beta, k)
-                            
-                        elif "node2vec" in algorithm_choice:
-                            filepath = "{}{}{}Sessions{}{}_{}_d{}_wl{}_nw{}_k{}_session.pse".format(self.output_path, algorithm_choice, self.add_slash_to_path, self.add_slash_to_path, protein, algorithm_choice, self.d, self.walk_len, self.num_walks, k)
 
-                        else:
-                            filepath = "{}{}{}Sessions{}{}_{}_d{}_k{}_session.pse".format(self.output_path, algorithm_choice, self.add_slash_to_path, self.add_slash_to_path, protein, algorithm_choice, self.d, k)
-                            
+                        if "node2vec" in algorithm_choice:
+                            pcn_pymol_scripts.pymol_plot_embeddings(protein_path, self.output_path, "ClustersEmbeddings", algorithm_choice, k, self.d, None, self.walk_len, self.num_walks, self.run_fr, self.window)
+                            filepath = "{}{}{}Sessions{}{}_{}_d{}_wl{}_nw{}_k{}_session.pse".format(self.output_path, algorithm_choice, self.add_slash_to_path, self.add_slash_to_path, protein, algorithm_choice, self.d, self.walk_len, self.num_walks, k)
+                            plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {}, k = {}, d = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.num_walks, self.walk_len, protein), bg=self.bg)
+                        elif "hope" in algorithm_choice:
+                            pcn_pymol_scripts.pymol_plot_embeddings(protein_path, self.output_path, "ClustersEmbeddings", algorithm_choice, k, self.d, self.beta, None, None, self.run_fr, self.window)
+                            filepath = "{}{}{}Sessions{}{}_{}_d{}_beta{}_k{}_session.pse".format(self.output_path, algorithm_choice, self.add_slash_to_path, self.add_slash_to_path, protein, algorithm_choice, self.d, self.beta, k)
+                            plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {}, k = {}, d = {} and beta = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, protein), bg = self.bg)
+                        else: #laplacian_eigenmaps
+                            pcn_pymol_scripts.pymol_plot_embeddings(protein_path, self.output_path, "ClustersEmbeddings", algorithm_choice, k, self.d, None, None, None, self.run_fr, self.window)
+                            filepath = "{}{}{}Sessions{}{}_{}_d{}_k{}_session.pse".format(self.output_path, algorithm_choice,  self.add_slash_to_path, self.add_slash_to_path, protein, algorithm_choice, self.d, k)
+                            plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {}, k = {} and d = {} for protein {}...".format(algorithm_choice, k, self.d, protein), bg = self.bg)
+
                         filepaths.append(filepath)
-                        
-                        plot_p_tk = tk.Label(self.run_fr, text="Compute and Plot partecipation coefficients with {}, k = {}, d = {},  beta = {}, num_walks = {} and walk_len = {} for protein {}...".format(algorithm_choice, k, self.d, self.beta, self.num_walks, self.walk_len, protein), bg = self.bg) 
+
                         plot_p_tk.pack()
                         self.run_fr.pack()
                         self.window.update() 

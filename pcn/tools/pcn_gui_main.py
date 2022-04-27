@@ -1,5 +1,12 @@
 import tkinter as tk
-from pcn_gui_class import PCNMinerGUI
+
+try:
+    from pcn.tools.pcn_gui_class import PCNMinerGUI #installed with pip
+except:
+    try: 
+        from pcn_gui_class import PCNMinerGUI #git cloned
+    except:
+        raise ImportError("PCN-Miner is not correctly installed.")
 
 def main():
     

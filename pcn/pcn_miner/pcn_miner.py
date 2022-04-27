@@ -37,7 +37,6 @@ from cdlib.algorithms import leiden as leiden_cdlib
 from cdlib.algorithms import louvain as louvain_cdlib 
 from cdlib.algorithms import walktrap as walktrap_cdlib 
 
-
 #from networkx.algorithms.community.centrality import girvan_newman as girvan_newman_
 from networkx.algorithms.community.asyn_fluid import asyn_fluidc as asyn_fluidc_
 from networkx.algorithms.community import greedy_modularity_communities
@@ -106,7 +105,7 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None, co
                 all_adj_files_exists = False
                 not_existing_adj_files.append(file)
            
-        if(not all_adj_files_exists):
+        if (not all_adj_files_exists):
             for filename in not_existing_adj_files:
                 filename_splitted = (filename.split(".txt"))[0].split("_") #adj = 6vxx_adj_mat_min_max.txt
                 p_name = filename_splitted[0]   
@@ -1021,7 +1020,7 @@ def kmeans_node2vec(A, n_clusters = None, norm=False, embedding="Node2Vec", d=2,
     Parameters: see hardSpectralClustering
     Returns: see hardSpectralClustering
     """
-    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks, walk_len, num_walks)
+    labels = hardSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
 
@@ -1031,7 +1030,7 @@ def fuzzycmeans_node2vec(A, n_clusters = None, norm=False, embedding="Node2Vec",
     Parameters: see softSpectralClustering
     Returns: see softSpectralClustering
     """
-    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, walk_len, num_walks, walk_len, num_walks)
+    labels = softSpectralClustering(A, n_clusters, norm, embedding, d, beta, walk_len, num_walks)
     return labels
     
 

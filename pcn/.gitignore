@@ -1,6 +1,5 @@
 #ignore directories
-/build
-/dist
+/__pycache__
 /pcn.egg-info
 
 #ignore config file
