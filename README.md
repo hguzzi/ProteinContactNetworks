@@ -67,6 +67,10 @@ Then we can install GEM library using pip+git:
 Finally we can install this library using TESTPYPI:
 
 	pip install --extra-index-url https://pypi.org/simple -i https://test.pypi.org/simple/ pcn
+	
+Or with pip:
+	
+	pip install pcn (TO DO)
 
 Or with pip+git:
 		
