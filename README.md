@@ -51,6 +51,8 @@ The easiest way to install this library is using the setup files on github:
 	git clone https://github.com/hguzzi/ProteinContactNetworks.git
 	source setupLinux-MacOSX.sh  
 
+Note: You may need to convert line endings format of the file setupLinux-MacOSX.sh. You can do it with Notepad++: Open the .sh file and then Edit -> EOL Conversion -> Unix or Macintosh.
+
 You can also install this library with pip:
 
 ## IMPORTANT: This project depends on PyMOL and GraphEmbeddingMethods, two libraries not available on PyPI. 
