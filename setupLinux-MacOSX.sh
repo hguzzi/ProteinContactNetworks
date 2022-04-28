@@ -29,4 +29,3 @@ then
 	pip install node2vec==0.4.4
 	pip install pyqt5
 fi
-
