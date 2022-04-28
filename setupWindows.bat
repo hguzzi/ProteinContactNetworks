@@ -19,7 +19,6 @@ call pip install scipy
 call pip install fuzzy-c-means
 call pip install git+https://github.com/palash1992/GEM.git
 call pip install cdlib
-call conda install -c schrodinger pymol
 call conda install -c conda-forge -c schrodinger pymol-bundle
 call pip install pytz
 call pip install python-dateutil
