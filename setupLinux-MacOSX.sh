@@ -24,7 +24,6 @@ then
 	pip install git+https://github.com/palash1992/GEM.git
 	pip install cdlib
 	conda install -c conda-forge -c schrodinger pymol-bundle
-	conda install -c schrodinger pymol 
 	pip install pytz
 	pip install python-dateutil
 	pip install node2vec==0.4.4
