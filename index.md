@@ -6,6 +6,8 @@ A Protein Contact Network is an unweighted graph where: nodes are the amino acid
 		
 ![image](https://user-images.githubusercontent.com/87126937/164475003-29d783ab-9f77-4826-94d8-5eb4499e55f2.png)
 
+![image](https://user-images.githubusercontent.com/87126937/165716596-aea2d977-59b9-4ce8-99b1-d1259783f5cd.png)
+
 PCN global descriptors (like graph diameter) or local descriptors (like node centrality measures) are useful to model and analyse protein functions. PCN Miner allow the user to identify modules (also called communities or clusters) in protein molecules using three different approaches: 
   1. spectral clustering: extract clusters from a graph with a clustering approach based on the Laplacian matrix eigenvectors following the guidelines given    in the paper: A tutorial on spectral clustering [1];
   2. embedding+clustering: uses one of the embedding algorithm in the GEM library [2] and then apply clustering;
@@ -60,33 +62,58 @@ Open the anaconda prompt and type the following command:
 
 	conda create -n PCN python=3.8.3
 	conda activate PCN 
-	conda install -c schrodinger pymol-bundle
+	conda install -c conda-forge -c schrodinger pymol-bundle
+	
+Then we can install GEM library using pip+git:
+	
+	pip install git+https://github.com/palash1992/GEM.git
 
 Finally we can install this library using TESTPYPI:
 
-	pip install --extra-index-url https://pypi.org/simple -i https://test.pypi.org/simple/ PCN-Miner
+	pip install --extra-index-url https://pypi.org/simple -i https://test.pypi.org/simple/ pcn
+
+	
+Or with pip:
+	
+	pip install pcn
 
 Or with pip+git:
 
 	pip install git+https://github.com/hguzzi/ProteinContactNetworks.git#egg=pcn
 
 
-# Usage:
+# How to use the command line tool version:
+	
+If the software is installed with pip:
 
-How to use the command line tool version:
+	conda activate PCN
+	python
+	from pcn.tools import pcn_main
+	pcn_main.main()
+
+If the software is installed with setup files on git:
 
 	conda activate PCN
 	cd pcn
 	cd tools
 	python pcn_main.py
 
-How to use the GUI version:
-        
+# How to use the GUI version:
+
+If the software is installed with pip:
+
 	conda activate PCN
-	cd pcn    
+	python
+	from pcn.tools import pcn_gui_main
+	pcn_gui_main.main()
+
+If the software is installed with setup files on git:
+
+	conda activate PCN
+	cd pcn       
 	cd tools
 	python pcn_gui_main.py
-
+	
 # Examples:
   
 Entry PDB code: 6VXX
