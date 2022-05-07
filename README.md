@@ -43,12 +43,14 @@ The easiest way to install this library is using the setup files on github:
 
 -S.O. Windows:
 
-	git clone https://github.com/hguzzi/ProteinContactNetworks.git	
+	git clone https://github.com/hguzzi/ProteinContactNetworks.git
+	cd ProteinContactNetworks
 	setupWindows.bat
         
 -S.O. Linux-MACOSX:
 
 	git clone https://github.com/hguzzi/ProteinContactNetworks.git
+	cd ProteinContactNetworks
 	source setupLinux-MacOSX.sh  
 
 Note: You may need to convert line endings format of the file setupLinux-MacOSX.sh. You can do it with Notepad++: Open the .sh file and then Edit -> EOL Conversion -> Unix or Macintosh.
