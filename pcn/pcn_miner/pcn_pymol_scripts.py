@@ -31,6 +31,7 @@ def get_colors(selection='', quiet=1):
     if not int(quiet): print(pymol_color_list)
     pymol_color_list.remove('black')
     pymol_color_list.remove('white')
+    pymol_color_list.remove('dash')
     return pymol_color_list
 
 cmd.extend('get_colors',get_colors)

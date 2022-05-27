@@ -5,8 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e8e3adc8-1a50-4d82-b685-2cbf94578b94" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pcn/pcn_miner/pcn_miner.py" beforeDir="false" afterPath="$PROJECT_DIR$/pcn/pcn_miner/pcn_miner.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pcn/pcn_miner/pcn_pymol_scripts.py" beforeDir="false" afterPath="$PROJECT_DIR$/pcn/pcn_miner/pcn_pymol_scripts.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,6 +107,8 @@
       <workItem from="1651060549106" duration="1997000" />
       <workItem from="1651069942346" duration="47000" />
       <workItem from="1651070001847" duration="47000" />
+      <workItem from="1652786164346" duration="1576000" />
+      <workItem from="1653669116802" duration="2948000" />
     </task>
     <servers />
   </component>

@@ -84,7 +84,7 @@ def checkIfFilesExists(files, initial_choice, proteins_path, adj_path = None, co
             not_existing_pdb_files.append(file)
             
     if(not all_pdb_files_exists):
-        for protein in not_existing_pdb_files:
+        for file in not_existing_pdb_files:
             if initial_choice=="pdb":
                 p_name = file[:(len(file)-4)]
             elif initial_choice=="adj":
@@ -226,8 +226,8 @@ def read_adj_mat(adj_filepath, p, min_, max_):
     Parameters: 
         adj_filepath: string, is the complete adjacency matrix file path to read.
         p: string with len equals to 4, is the protein pdb code.
-        min_: float, is the minimum threshold distace for extract only the non covalent interactions between amino acids.
-        max_: float, is the maximum threshold distace for extract only the significat interactions between amino acids.
+        min_: float, is the minimum threshold distance for extract only the non-covalent interactions between amino acids.
+        max_: float, is the maximum threshold distance for extract only the significant interactions between amino acids.
     Returns: None
     """
     if (os.path.isfile("{}{}_adj_mat_{}_{}.txt".format(adj_filepath, p, min_, max_))):
@@ -249,16 +249,84 @@ def printProgressBar (iteration, total):
 
     if percent == 100:
         print()
-        
+
+
 def adjacent_matrix(output_path, coordinates, p, min_=4, max_=8, comp_adj_fr=None, window = None):
+    from sklearn.metrics import pairwise_distances
+    import time
     """
-    Compute the adjacency matrix.
+    Parallel computation of the adjacency matrix.
     Parameters:
         output_path: string, is the output file path.
         coordinates: np.array, contains the euclidean distance between the alpha carbon of the amino acids of the proteins.  
         p: string with len equals to 4, is the protein pdb code.
-        min_: float, is the minimum threshold distace for extract only the non covalent interactions between amino acids.
-        max_: float, is the maximum threshold distace for extract only the significat interactions between amino acids.
+        min_: float, is the minimum threshold distance for extract only the non covalent interactions between amino acids.
+        max_: float, is the maximum threshold distance for extract only the significant interactions between amino acids.
+        comp_adj_fr: tk.Frame, is the frame of the GUI that contains the progress bar. 
+        window: tk.Tk, is the window of the GUI.
+    Returns: adj
+    """
+    start = time.time()
+    n = coordinates.shape[0]
+    cords = np.hstack(coordinates[:,1]).reshape(n,3)
+    adj = np.zeros((n,n))
+    #d = np.zeros((n,n), dtype=float)
+    d = pairwise_distances(X = cords, n_jobs = -1)
+
+    if comp_adj_fr is not None:
+        pb = ttk.Progressbar(comp_adj_fr, orient="horizontal", mode="determinate", length=100)
+        pb.pack()
+        pb["value"] = 0
+        label = tk.Label(comp_adj_fr, text="Current progress {}%".format(pb["value"]))
+        label.pack()
+        window.update()
+    else:
+        value = 0
+        printProgressBar(value, n)
+
+    for i in range(n):
+        for j in range(i):
+            if ((d[i][j]>min_) and (d[i][j]<max_)):
+                adj[i][j] = 1
+                adj[j][i] = 1
+
+        if comp_adj_fr is not None:
+            pb["value"] = round(((i + 1) / n) * 100, 2)
+            label['text'] = "Current progress {}%".format(pb["value"])
+            pb.pack()
+            label.pack()
+            window.update()
+        else:
+            printProgressBar(i + 1, n)
+
+    if comp_adj_fr is not None:
+        pb["value"] = round(((i + 1) / n) * 100, 2)
+        label['text'] = "Current progress {}%".format(pb["value"])
+        pb.pack()
+        label.pack()
+        window.update()
+    else:
+        printProgressBar(i + 1, n)
+
+    end = time.time()
+    print("Time for parallel PCN computation of protein {}: {} s".format(p, (end-start)))
+
+    if not os.path.exists("{}Adj".format(output_path)):
+        os.makedirs("{}Adj".format(output_path))
+    np.savetxt("{}Adj{}{}_adj_mat_{}_{}.txt".format(output_path, add_slash_to_path, p, min_, max_), adj, fmt='%.2f')
+    print("saved adj matrix")
+
+    return adj
+
+def adjacent_matrix_nonparallel(output_path, coordinates, p, min_=4, max_=8, comp_adj_fr=None, window = None):
+    """
+    Non parallel computation the adjacency matrix.
+    Parameters:
+        output_path: string, is the output file path.
+        coordinates: np.array, contains the euclidean distance between the alpha carbon of the amino acids of the proteins.  
+        p: string with len equals to 4, is the protein pdb code.
+        min_: float, is the minimum threshold distance for extract only the non-covalent interactions between amino acids.
+        max_: float, is the maximum threshold distance for extract only the significant interactions between amino acids.
         comp_adj_fr: tk.Frame, is the frame of the GUI that contains the progress bar. 
         window: tk.Tk, is the window of the GUI.
     Returns: None
@@ -312,6 +380,7 @@ def adjacent_matrix(output_path, coordinates, p, min_=4, max_=8, comp_adj_fr=Non
     
             
     #save Edgelists, Adj matrixs and Distances matrixs
+    """
     if not os.path.exists("{}Distances".format(output_path)):
         os.makedirs("{}Distances".format(output_path))
     np.savetxt("{}Distances{}{}_distances.txt".format(output_path, add_slash_to_path, p), d, fmt='%.2f')
@@ -322,7 +391,7 @@ def adjacent_matrix(output_path, coordinates, p, min_=4, max_=8, comp_adj_fr=Non
         
     np.savetxt("{}Edgelists{}{}_edgelist_{}_{}.csv".format(output_path, add_slash_to_path, p, min_, max_), np.array(edge_list), fmt='%.2f')
     print("saved edge list")
-        
+    """
     if not os.path.exists("{}Adj".format(output_path)):
         os.makedirs("{}Adj".format(output_path))
     np.savetxt("{}Adj{}{}_adj_mat_{}_{}.txt".format(output_path, add_slash_to_path, p, min_, max_), adj, fmt='%.2f')
@@ -333,7 +402,7 @@ def adjacent_matrix(output_path, coordinates, p, min_=4, max_=8, comp_adj_fr=Non
 def save_centralities(output_path, centralities, p_name, method = None):
     """
     Save the node centralities as txt file in the output directory.
-    Paramters: 
+    Parameters:
         output_path: string, path to use when save the centralities.
         centralities: dict {node: centrality}, node 'method' centralities. 
         p_name: string, pdb code of the protein to study.
@@ -355,7 +424,7 @@ def save_centralities(output_path, centralities, p_name, method = None):
 def save_labels(output_path, labels, residue_names, p_name, method=None, d=None, beta=None, walk_len=None, num_walks=None):
     """
     Save the node centralities as txt file in the output directory.
-    Paramters: 
+    Parameters:
         output_path: string, path to use when save communities/clusters.
         labels : np.array, list of clusters/communities.
         residue_names: np.array, list of the residues names of the protein.
@@ -403,8 +472,8 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
       dict_node_cluster_0[str (residue_names_0[i])] = label    
     
     residue_clusters = np.array(list (dict_node_cluster_0.items()))
-    residue_names_cluster = dict ()   
-    
+    residue_names_cluster = dict ()
+
     k = int (max(labels)) + 1
     
     for label in range(k):
@@ -412,7 +481,6 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
         temp = []
         
         for (resi, res_name) in residue_names:
-
             if ((residue_names[int (resi), 0]==residue_clusters[int (resi), 0]) and (str (int ((residue_clusters[int (resi), 1]))) == str (label))): 
             
                 temp.append(res_name)
@@ -484,7 +552,7 @@ def save_labels(output_path, labels, residue_names, p_name, method=None, d=None,
 def save_part_coef(output_path, part_coefs, p_name, method, k):
     """
     Save the nodes partecipation coefficients as txt file in the output directory.
-    Paramters: 
+    Parameters:
         output_path: string, path to use when save the node partecipation coefficients.
         part_coefs: dict {node: part_coef}, node partecipation coefficient. 
         p_name: string, pdb code of the protein to study.
@@ -860,7 +928,7 @@ def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  
     else:
     
         if (embedding in supported_embeddings):
-             
+
             G = from_numpy_matrix(A)
             if (embedding == "HOPE"): #embedding dimension (d) and decay factor (beta) as inputs
                 model = HOPE(d=d, beta=beta)
@@ -872,17 +940,19 @@ def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  
             if embedding == "Node2Vec":
                 model = model.fit()
                 train = model.wv.vectors
-
+                train = np.array(train)
+                print(train.shape, A.shape)
+                if (train.shape[0] < A.shape[0]):
+                    raise Exception("Parameters 'num_walks' and 'walk_length' for Node2Vec embedding are too small. Can't train the model.")
             else:
                 train, t = model.learn_embedding(graph=G)
-            
-            train = np.array(train)
+                train = np.array(train)
+
         else: raise Exception ("embedding {} not supported".format(embedding))
     
     fcm = FCM(n_clusters=n_clusters)
     fcm.fit(train)
     labels = fcm.predict(train)
-
     return labels
   
 def ssc_shimalik(A, n_clusters = None):
