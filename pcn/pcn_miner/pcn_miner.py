@@ -883,10 +883,12 @@ def hardSpectralClustering(A, n_clusters = None, norm=False, embedding=None, d=N
             if embedding == "Node2Vec":
                 model = model.fit()
                 train = model.wv.vectors
+                train = np.array(train)
+                if (train.shape[0] < A.shape[0]):
+                    raise Exception("Parameters 'num_walks' and 'walk_length' for Node2Vec embedding are too small. Can't train the model.")
             else:
                 train, t = model.learn_embedding(graph=G)
-            
-            train = np.array(train)
+                train = np.array(train)
 
         else: raise Exception ("embedding {} not supported".format(embedding))
     
@@ -941,7 +943,6 @@ def softSpectralClustering(A, n_clusters = None, norm=False, embedding = None,  
                 model = model.fit()
                 train = model.wv.vectors
                 train = np.array(train)
-                print(train.shape, A.shape)
                 if (train.shape[0] < A.shape[0]):
                     raise Exception("Parameters 'num_walks' and 'walk_length' for Node2Vec embedding are too small. Can't train the model.")
             else:
