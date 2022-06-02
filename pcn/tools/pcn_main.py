@@ -7,7 +7,7 @@ Choose the proteins you want to study and insert the PDB codes: for each protein
     1. Supported Spectral Clustering methods: Shi Malik, Normalized an Unnormalized approach both with soft (Fuzzy C-Means) and hard (KMeans) clustering algorithms;
     2. Supported Community Detection methods: Louvain, Leiden, Walktrap, Spinglass, Infomap (not available for Windows users), Async FluidC, Greedy Modularity;
     3. Supported Embeddings methods: HOPE, Laplacian Eigenmaps, Node2Vec.
-  
+
 The outputs (node centralities/communities/clusters) will be plotted on the protein structure using the software PyMOL.
 
 Authors: Lomoio Ugo
@@ -16,22 +16,22 @@ Authors: Lomoio Ugo
 License: CC0-1.0
 """
 
-from sys import platform    
+from sys import platform
 import os
 from networkx import from_numpy_matrix
 
 try:
     from pcn.pcn_miner import pcn_miner, pcn_pymol_scripts #installed with pip
 except:
-    try: 
+    try:
         import sys                #git cloned
         cwd = os.getcwd()
         pcn_d = os.path.abspath(os.path.join(cwd, os.pardir))
         sys.path.append(pcn_d)
-        from pcn_miner import pcn_miner, pcn_pymol_scripts 
+        from pcn_miner import pcn_miner, pcn_pymol_scripts
     except:
         raise ImportError("PCN-Miner is not correctly installed.")
-        
+
 import numpy as np
 from scipy.linalg import eigh
 from sys import platform
@@ -84,7 +84,7 @@ def main():
     #the user can choose all the supported algorithms by typing 0.
     """
     dict = {
-            0 = "all" 
+            0 = "all"
             1 = ALGORITHM1
             2 = ALGORITHM2
             ...
@@ -374,7 +374,10 @@ def main():
             if(initial_choice == 'pdb'):
 
                 print("computing adjacency matrix for protein {}... (This may take time)".format(p_name))
-                A = pcn_miner.adjacent_matrix(output_path, residues, p_name, min_, max_)
+                #parallel computation, TODO: TEST PARALLEL COMPUTATION ON MAC AND THEN UNCOMMENT THIS
+                #A = pcn_miner.adjacent_matrix(output_path, residues, p_name, min_, max_)
+                #non parallel computation
+                A = pcn_miner.adjacent_matrix_nonparallel(output_path, residues, p_name, min_, max_)
 
             #if the user starts with a precomputed PCN, read the adj file that represent the PCN
             else:     #'adj'

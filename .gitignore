@@ -2,6 +2,7 @@
 /build
 /dist
 /pcn.egg-info
+/.vs
 
 #ignore config file
 config.ini
