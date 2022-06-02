@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e8e3adc8-1a50-4d82-b685-2cbf94578b94" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/pcn/pcn_miner/pcn_miner.py" beforeDir="false" afterPath="$PROJECT_DIR$/pcn/pcn_miner/pcn_miner.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,6 +107,8 @@
       <workItem from="1652786164346" duration="1576000" />
       <workItem from="1653669116802" duration="2948000" />
       <workItem from="1653672586892" duration="219000" />
+      <workItem from="1653672821134" duration="34000" />
+      <workItem from="1654082686338" duration="8000" />
     </task>
     <servers />
   </component>
