@@ -28,4 +28,5 @@ then
 	pip install python-dateutil
 	pip install node2vec==0.4.4
 	pip install pyqt5
+	pip install leidenalg
 fi

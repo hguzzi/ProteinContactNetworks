@@ -23,5 +23,5 @@ call conda install -c conda-forge -c schrodinger pymol-bundle
 call pip install pytz
 call pip install python-dateutil
 call pip install node2vec==0.4.4
-
+call pip install leidenalg
 pause

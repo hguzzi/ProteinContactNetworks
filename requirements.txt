@@ -30,3 +30,4 @@ pytz
 python-dateutil
 node2vec
 GEM @ git+https://github.com/palash1992/GEM.git
+leidenalg
